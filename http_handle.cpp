@@ -6,7 +6,7 @@
  */
 
 #include"http_handle.h"
-ssize_t rio_writen(int fd, void *usrbuf, size_t n)
+ssize_t RioWriten(int fd, void *usrbuf, size_t n)
 {
     size_t nleft = n;
     ssize_t nwritten;
@@ -15,7 +15,7 @@ ssize_t rio_writen(int fd, void *usrbuf, size_t n)
     while (nleft > 0) {
 	if ((nwritten = write(fd, bufp, nleft)) <= 0) {
 	    if (errno == EINTR)  /* Interrupted by sig handler return */
-		nwritten = 0;    /* and call write() again */
+	    	nwritten = 0;    /* and call write() again */
 	    else
 		return -1;       /* errno set by write() */
 	}
@@ -24,6 +24,35 @@ ssize_t rio_writen(int fd, void *usrbuf, size_t n)
     }
     return n;
 }
+ssize_t RioReadn(int fd,void *usrbuf,size_t n)
+{
+	size_t nleft = n;
+	ssize_t nread;
+	char *bufp = (char*)usrbuf;
+	while(nleft>0)
+	{
+		if((nread = read(fd,bufp,nleft))<0)
+		{
+			if(errno == EINTR)
+				nread = 0;
+			else
+				return -1;
+
+		}
+		else if(nread == 0)
+		{
+			break;
+		}
+		nleft-=nread;
+		bufp+=nread;
+	}
+	return (n-nleft);
+}
+
+const char *error_400_response ="HTTP/1.1 400 Bad Request\r\n";
+const char  *error_500_response = "HTTP/1.1 500 Internal Server Error\r\n";
+const char *error_404_response = "HTTP/1.1 404 Not Found\r\n";
+const char *error_403_response = "HTTP/1.1 403 Forbidden\r\n";
 MyHttpHandleClass::MyHttpHandleClass(int confd,sockaddr_in client_addr)
 {
 	_connfd = confd;
@@ -35,7 +64,9 @@ MyHttpHandleClass::MyHttpHandleClass(int confd,sockaddr_in client_addr)
 	line_start = 0;
 	line_end = 0;
 	is_right_request = false;
+	http_code = BAD_REQUEST;//or?
 	PraseContent(recvbuf);
+	SendResponse();
 	close(_connfd);
 
 }
@@ -49,14 +80,13 @@ void MyHttpHandleClass::PraseContent(char *buf)
 		case CHECK_STATE_REQUESTLINE:
 			 line = ReadAndCheckLine();
 			if (line == LINE_OK) {
-				HTTP_CODE http_code = PraseRequestLine();
+				http_code = PraseRequestLine();
 				line_start = line_end+1;
 				if (http_code == NO_REQUEST) {
-
 					check_state = CHECK_STATE_HEADER;
 					break;
-				} else if (http_code == BAD_REQUEST) {
-					SendResponse();
+				}
+				else{
 					return;
 				}
 			}
@@ -64,35 +94,31 @@ void MyHttpHandleClass::PraseContent(char *buf)
 				break;
 			}
 			else if (line == LINE_BAD) {
-				strcpy(response_header,"HTTP/1.1 400 Bad Requset \n");
-				SendResponse();
 				return;
 			}
 			break;
 		case CHECK_STATE_HEADER:
 			line = ReadAndCheckLine();
 			if (line == LINE_OK) {
-				HTTP_CODE http_code = PraseHeaders();
+				http_code = PraseHeaders();
 				line_start = line_end+1;
 				if (http_code == NO_REQUEST) {
 					break;
 				}
 				else if(http_code == GET_REQUEST){
-					is_right_request = true;
-					SendResponse();
+					http_code = ProcessRequest();
 					return;
 				}
 			} else if (line == LINE_OPEN)
-				continue;
+				break;
 			else if (line == LINE_BAD) {
-				SendResponse();
 				return;
 			}
 
 			break;
 
 		default:
-			break;
+			return;
 		}
 	}
 }
@@ -102,13 +128,20 @@ MyHttpHandleClass::LINE_STATUS MyHttpHandleClass::ReadAndCheckLine()
 	int recvbuf_left = BUFFERSIZE - read_index;
 	if(check_index == read_index)
 	{
-		long int read = recv(_connfd,&recvbuf[read_index],recvbuf_left,0);
-		if(read==-1)
+		long int readlen = read(_connfd,&recvbuf[read_index],recvbuf_left);
+		if(readlen==-1)
+		{
+			if(errno == EINTR)
+				return LINE_OPEN;
+			else
+				return LINE_BAD;
+		}
+		else if(readlen == 0)//read EOF,indicate client make  a mistake!
 		{
 			return LINE_BAD;
 		}
 		printf("recv:\n%s\n",recvbuf);
-		read_index+=read;
+		read_index+=readlen;
 	}
 	for (; check_index < read_index-1; check_index++) {
 		temp = recvbuf[check_index];
@@ -117,7 +150,8 @@ MyHttpHandleClass::LINE_STATUS MyHttpHandleClass::ReadAndCheckLine()
 				return LINE_OPEN;
 			else if(recvbuf[check_index+1]=='\n')
 			{
-				line_end = ++check_index;
+				line_end = check_index+1;
+				check_index+=2;
 
 				return LINE_OK;
 			}
@@ -128,7 +162,8 @@ MyHttpHandleClass::LINE_STATUS MyHttpHandleClass::ReadAndCheckLine()
 		{
 			if((check_index>1)&&recvbuf[check_index - 1] =='\r')
 			{
-				line_end = check_index++;
+				line_end = check_index;
+				check_index++;
 				return LINE_OK;
 			}
 			return LINE_BAD;
@@ -140,20 +175,24 @@ MyHttpHandleClass::LINE_STATUS MyHttpHandleClass::ReadAndCheckLine()
 
 MyHttpHandleClass::HTTP_CODE MyHttpHandleClass::PraseRequestLine()
 {
-	recvbuf[line_end] = '\0';//change '\n' to '\0'
+	//recvbuf[line_end] = '\0';//change '\n' to '\0'
 	recvbuf[line_end-1] ='\0';//change '\r' to '\0'
 	if(strpbrk(&recvbuf[line_start]," ")==NULL)
 	{
-		strcpy(response_header,"HTTP/1.1 400 Bad Requset\r\n");
+		//strcpy(response_header,"HTTP/1.1 400 Bad Requset\r\n");
 		return BAD_REQUEST;
 	}
-	char *method = &recvbuf[line_start];
-	char *method_end = strpbrk(method," ");
+	char *methodp = &recvbuf[line_start];
+	char *method_end = strpbrk(methodp," ");
 	*method_end = '\0';
-	if(strcasecmp(method,"GET")!=0)
+	if(strcasecmp(methodp,"GET")==0)
 	{
-		printf("we only achieve GET,this method is %s\n",method);
-		strcpy(response_header,"HTTP/1.1 500 Internal Server Error\r\n");
+		method = GET;
+	}
+	else
+	{
+		printf("we only achieve GET,this method is %s\n",methodp);
+		//strcpy(response_header,"HTTP/1.1 500 Internal Server Error\r\n");
 		return BAD_REQUEST;
 	}
 	url=method_end+1;
@@ -164,7 +203,7 @@ MyHttpHandleClass::HTTP_CODE MyHttpHandleClass::PraseRequestLine()
 	{
 		printf("we only support HTTP/1.1\n");
 		printf("method:%s\n",version);
-		strcpy(response_header,"HTTP/1.1 500 Internal Server Error\r\n");
+		//strcpy(response_header,"HTTP/1.1 500 Internal Server Error\r\n");
 		return BAD_REQUEST;
 	}
 	*url_end = '\0';
@@ -203,57 +242,106 @@ MyHttpHandleClass::HTTP_CODE MyHttpHandleClass::PraseHeaders()
 	return NO_REQUEST;
 
 }
+MyHttpHandleClass::HTTP_CODE MyHttpHandleClass::ProcessRequest()
+{
+		struct stat file_stat;
 
+		if(stat(url+1,&file_stat)<0)
+		{
+			//strcpy(response_header,"HTTP/1.1 404 Not Found\r\n");
+			//RioWriten(_connfd,response_header,strlen(response_header));
+			return NO_RESOURCE;
+		}
+		else if(!(file_stat.st_mode&S_IROTH))
+		{
+			//strcpy(response_header,"HTTP/1.1 403 Forbidden\r\n");
+			//RioWriten(_connfd,response_header,strlen(response_header));
+			return FORBIDDEN_REQUEST;
+		}
+		else if(S_ISDIR(file_stat.st_mode))
+		{
+			//strcpy(response_header,"HTTP/1.1 400 Bad request\r\n");
+			//RioWriten(_connfd,response_header,strlen(response_header));
+			return BAD_REQUEST;
+		}
+		file_size = (int)file_stat.st_size;
+		return GET_REQUEST;
+}
 void MyHttpHandleClass::SendResponse()
 {
-	if(!is_right_request)
-	{
-		int ret=rio_writen(_connfd,response_header,strlen(response_header));
+	long int ret;
+	switch(http_code){
+	case NO_REQUEST:
+		ret = RioWriten(_connfd, (void*)error_500_response, strlen(error_500_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
+	case GET_REQUEST:
+		{
+		GetFileType();
+		sprintf(response_header,"HTTP/1.1 200 OK\r\n");
+		sprintf(response_header,"%sServer: Amapola Web Server\r\n",response_header);
+		sprintf(response_header,"%sConnection: close\r\n",response_header);
+		sprintf(response_header,"%sContent-length:%d\r\n",response_header,file_size);
+		sprintf(response_header,"%sContent-type:%s\r\n\r\n",response_header,file_type);
+		ret=RioWriten(_connfd,response_header,strlen(response_header));
 		if(ret<0)
-			printf("error in rio_writen\n");
-		return;
+		{
+			printf("write error:%d\n",errno);
+		}
+		printf("Response header:\n%s",response_header);
+		int filefd = open(url+1,O_RDONLY,0);
+		if(sendfile(_connfd,filefd,NULL,(size_t)file_size)<0)
+		{
+			printf("sendfile error:%d\n",errno);
+		}
+	/*	char *filep = (char*)mmap(0,file_stat.st_size,PROT_READ,MAP_PRIVATE,filefd,0);
+		close(filefd);
+		rio_writen(_connfd,filep,file_stat.st_size);
+		munmap(filep,file_stat.st_size);*/
 	}
-	struct stat file_stat;
-
-	if(stat(url+1,&file_stat)<0)
-	{
-		strcpy(response_header,"HTTP/1.1 404 Not Found\r\n");
-		rio_writen(_connfd,response_header,strlen(response_header));
-		return;
+		break;
+	case BAD_REQUEST:
+		ret = RioWriten(_connfd, (void*)error_400_response, strlen(error_400_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
+	case NO_RESOURCE:
+		ret = RioWriten(_connfd, (void*)error_404_response, strlen(error_404_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
+	case FORBIDDEN_REQUEST:
+		ret = RioWriten(_connfd, (void*)error_403_response, strlen(error_403_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
+	case FILE_REQUEST:
+		//todo
+		break;
+	case INTERNAL_ERROR:
+		ret = RioWriten(_connfd, (void*)error_500_response, strlen(error_500_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
+	case CGI_REQUEST:
+		//todo
+		break;
+	case CLOSED_CONNECTION:
+		//todo
+		break;
+	default:
+		ret = RioWriten(_connfd, (void*)error_500_response, strlen(error_500_response));
+		if (ret < 0) {
+			printf("write error:%d\n", errno);
+		}
+		break;
 	}
-	else if(!(file_stat.st_mode&S_IROTH))
-	{
-		strcpy(response_header,"HTTP/1.1 403 Forbidden\r\n");
-		rio_writen(_connfd,response_header,strlen(response_header));
-		return;
-	}
-	else if(S_ISDIR(file_stat.st_mode))
-	{
-		strcpy(response_header,"HTTP/1.1 400 Bad request\r\n");
-		rio_writen(_connfd,response_header,strlen(response_header));
-		return;
-	}
-	GetFileType();
-	sprintf(response_header,"HTTP/1.1 200 OK\r\n");
-	sprintf(response_header,"%sServer: Amapola Web Server\r\n",response_header);
-	sprintf(response_header,"%sConnection: close\r\n",response_header);
-	sprintf(response_header,"%sContent-length:%d\r\n",response_header,(int)file_stat.st_size);
-	sprintf(response_header,"%sContent-type:%s\r\n\r\n",response_header,file_type);
-	int ret=rio_writen(_connfd,response_header,strlen(response_header));
-	if(ret<0)
-	{
-		printf("write error:%d\n",errno);
-	}
-	printf("Response header:\n%s",response_header);
-	int filefd = open(url+1,O_RDONLY,0);
-	if(sendfile(_connfd,filefd,NULL,(size_t)file_stat.st_size)<0)
-	{
-		printf("sendfile error:%d\n",errno);
-	}
-/*	char *filep = (char*)mmap(0,file_stat.st_size,PROT_READ,MAP_PRIVATE,filefd,0);
-	close(filefd);
-	rio_writen(_connfd,filep,file_stat.st_size);
-	munmap(filep,file_stat.st_size);*/
 	return;
 
 }

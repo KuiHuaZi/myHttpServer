@@ -25,6 +25,8 @@
 #include<sys/stat.h>
 #include<fcntl.h>
 #include<sys/mman.h>
-#include"http_handle.h"
 #include<sys/sendfile.h>
+#include<netdb.h>
+#include"http_handle.h"
+class MyHttpHandleClass;
 #endif /* HTTP_SERVER_H_ */
