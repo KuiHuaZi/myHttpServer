@@ -10,19 +10,42 @@
 #include<time.h>
 #include<netinet/in.h>
 #include<exception>
-const int connect_keep_time = 20;
+#include<iostream>
+#include<sys/timerfd.h>
+#include<assert.h>
+#include<stdio.h>
+#include<string.h>
+//#define DEBUGHEAP
+const int connect_keep_time = 100;
 class http_conn;
 class Timer
 {
 public:
-	Timer(int delay,http_conn user):user_conn(user)
+	Timer(int delay,http_conn *user):user_conn(user)
 	{
-		expire = time(NULL) + delay;
+		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
+		expire_struct.tv_sec+=delay;
+		expire = expire_struct.tv_sec;
+		cb_func = NULL;
+		cb_funct = NULL;
+		location_in_heap =-1;
 	}
-private:
-	time_t expire;
-	void(*cb_func)(http_conn&);
-	http_conn &user_conn;
+	Timer(int delay)
+	{
+		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
+		expire_struct.tv_sec+=delay;
+		expire = expire_struct.tv_sec;
+		cb_func = NULL;
+		cb_funct = NULL;
+		user_conn = NULL;
+		location_in_heap =-1;
+	}
+public:
+	struct timespec expire_struct;
+	int expire;
+	void(*cb_func)(http_conn*);
+	void(*cb_funct)();
+	http_conn *user_conn;
 	int location_in_heap;
 };
 class TimerHeap
@@ -43,14 +66,12 @@ private:
 	void sink(int index);
 	void resize(int cap);
 	void swap(int i, int j);
-private:
+public:
 
 	Timer** _heap;
 	int _cap;
 	int _size;
 };
-
-
 
 
 
