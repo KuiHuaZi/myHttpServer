@@ -17,11 +17,12 @@
 #include<string.h>
 //#define DEBUGHEAP
 const int connect_keep_time = 100;
+#define END -1
 class http_conn;
 class Timer
 {
 public:
-	Timer(int delay,http_conn *user):user_conn(user)
+	Timer(int delay,http_conn *user,int fd):user_conn(user)
 	{
 		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
 		expire_struct.tv_sec+=delay;
@@ -29,8 +30,9 @@ public:
 		cb_func = NULL;
 		cb_funct = NULL;
 		location_in_heap =-1;
+		_fd = fd;
 	}
-	Timer(int delay)
+	Timer(int delay,int fd)
 	{
 		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
 		expire_struct.tv_sec+=delay;
@@ -39,6 +41,7 @@ public:
 		cb_funct = NULL;
 		user_conn = NULL;
 		location_in_heap =-1;
+		_fd = fd;
 	}
 public:
 	struct timespec expire_struct;
@@ -46,6 +49,7 @@ public:
 	void(*cb_func)(http_conn*);
 	void(*cb_funct)();
 	http_conn *user_conn;
+	int _fd;
 	int location_in_heap;
 };
 class TimerHeap
@@ -61,6 +65,7 @@ public:
 	bool IsEmpty();
 	int size();
 	void Trick();
+	int *GetExpireAndSetNewTimer();
 private:
 	void swim(int index);
 	void sink(int index);
@@ -71,6 +76,7 @@ public:
 	Timer** _heap;
 	int _cap;
 	int _size;
+	int _expire_timer[10];
 };
 
 

@@ -195,6 +195,31 @@ void TimerHeap::Trick()
 		tmp = _heap[1];
 	}
 }
+int* TimerHeap::GetExpireAndSetNewTimer()
+{
+	Timer *tmp = _heap[1];
+	struct timespec cur;
+	clock_gettime(CLOCK_MONOTONIC,&cur);
+	int i = 0;
+	while(!IsEmpty())
+	{
+		if(!tmp)
+		{
+			break;
+		}
+		if(tmp->expire > cur.tv_sec)
+		{
+			break;
+		}
+		if(i>8)
+			break;
+		_expire_timer[i++] = tmp->_fd;
+		PopTimer();
+		tmp = _heap[1];
+	}
+	_expire_timer[i] = END;
+
+}
 #ifdef DEBUGGEAP
 #include<sys/epoll.h>
 #include<errno.h>

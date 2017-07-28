@@ -18,7 +18,7 @@
 #include <sys/mman.h>
 #include <stdarg.h>
 #include <errno.h>
-#include "locker.h"
+//#include "locker.h"
 
 class http_conn
 {

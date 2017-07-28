@@ -5,69 +5,22 @@
  *      Author: amapola
  */
 
-
+#include<unistd.h>
+#include<pthread.h>
+#include<assert.h>
+#include<sys/types.h>
+#include<sys/socket.h>
+#include<fcntl.h>
+#include<sys/epoll.h>
+#include<signal.h>
+#include<errno.h>
+#include<sys/wait.h>
+#include<sys/types.h>
 #include"process_pool.h"
 #include"time_heap.h"
 #include"connect_pool.h"
+#include "common_functions.h"
 static int sig_pipefd[2];
-int SetNonblocking(int fd)
-{
-	int flag = fcntl(fd,F_GETFL);
-	assert(flag!=-1);
-	flag = flag | O_NONBLOCK;
-	int ret = fcntl(fd,F_SETFL,flag);
-	assert(ret!=-1);
-	return flag;
-}
-bool AddFd(int epollfd,int fd)
-{
-	epoll_event event;
-	event.data.fd = fd;
-	event.events = EPOLLIN;
-	int ret = epoll_ctl(epollfd,EPOLL_CTL_ADD,fd,&event);
-	if(ret==-1)
-	{
-		printf("addfd:epoll_ctl failed\n");
-		return false;
-	}
-	ret = setnonblocking(fd);
-	if(ret==-1)
-	{
-		printf("addfd:setnonblocking failed\n");
-		return false;
-	}
-	return true;
-}
-bool RemoveFd(int epollfd,int fd)
-{
-	int ret = epoll_ctl(epollfd,EPOLL_CTL_DEL,fd,0);
-	if(ret == -1)
-	{
-		printf("removefd:epoll_clt failed!\n");
-		return false;
-	}
-	ret = close(fd);
-	if(ret == -1)
-	{
-		printf("removefd:close failed!\n");
-		return false;
-	}
-	return true;
-
-}
-bool ModifyFd(int epollfd,int fd,int ev)
-{
-	epoll_event event;
-	event.data.fd = fd;
-	event.events = ev;
-	int ret = epoll_ctl(epollfd,fd,EPOLL_CTL_MOD,&event);
-	if(ret == -1)
-	{
-		printf("modfd:epoll_ctl failed!\n");
-		return false;
-	}
-	return true;
-}
 void SigHandler(int sig)
 {
 	int save_errno = errno;
@@ -293,7 +246,17 @@ void ProcessPool<T>::RunChild()
 						printf("Process %d RunChilde:accept failed!\n",_sub_process[_index].m_pid);
 						continue;
 					}
-					connections.AddConnect(newfd);
+					if(!AddFd(_epollfd,newfd))
+					{
+						printf("Process %d RunChilde:AddFd failed!\n",_sub_process[_index].m_pid);
+						continue;
+					}
+					if(!connections.AddConnect(newfd))
+					{
+						RemoveFd(_epollfd,newfd);
+						continue;
+					}
+					heap.InsertTimer(connections.TimerOfConnect(newfd));
 				}
 				else if(tmp == -1)
 				{
@@ -333,15 +296,54 @@ void ProcessPool<T>::RunChild()
 			else if(sockfd == time_fd)
 			{
 				//todo:trick
+				int *expire_fd = heap.GetExpireAndSetNewTimer();
+				for(int i = 0; expire_fd[i]!=END;++i)
+				{
+					connections.RecyleConn(expire_fd[i]);
+					RemoveFd(_epollfd,expire_fd[i]);
+				}
+				delete[]expire_fd;
 
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
-				connections.Process(sockfd,READ);
+				heap.UpdateTimer(connections.TimerOfConnect(sockfd));
+				ReturnCode ret = connections.Process(sockfd,READ);
+				switch(ret)
+				{
+				case TOWRITE:
+					uint32_t ev = EPOLLOUT;
+					ModifyFd(_epollfd,sockfd,ev);
+					break;
+				case TOCLOSE:
+					RemoveFd(_epollfd,sockfd);
+					connections.RecyleConn(sockfd);
+					break;
+				case TOREAD:
+				case CONTINUE:
+				default:
+					break;
+				}
 			}
 			else if(evlist[i].events & EPOLLOUT)
 			{
-				connections.Process(sockfd,WRITE);
+				heap.UpdateTimer(connections.TimerOfConnect(sockfd));
+				ReturnCode ret = connections.Process(sockfd,WRITE);
+				switch(ret)
+				{
+				case TOREAD:
+					uint32_t ev = EPOLLIN;
+					ModifyFd(_epollfd,sockfd,ev);
+					break;
+				case TOCLOSE:
+					RemoveFd(_epollfd,sockfd);
+					connections.RecyleConn(sockfd);
+					break;
+				case TOWRITE:
+				case CONTINUE:
+				default:
+					break;
+				}
 			}
 			else
 			{

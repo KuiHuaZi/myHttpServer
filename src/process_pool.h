@@ -7,17 +7,6 @@
 
 #ifndef SRC_PROCESS_POOL_H_
 #define SRC_PROCESS_POOL_H_
-#include<unistd.h>
-#include<pthread.h>
-#include<assert.h>
-#include<sys/types.h>
-#include<sys/socket.h>
-#include<fcntl.h>
-#include<sys/epoll.h>
-#include<signal.h>
-#include<errno.h>
-#include<sys/wait.h>
-#include<sys/types.h>
 class Process
 {
 public:
