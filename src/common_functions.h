@@ -7,6 +7,8 @@
 
 #ifndef SRC_COMMON_FUNCTIONS_H_
 #define SRC_COMMON_FUNCTIONS_H_
+#include<stdlib.h>
+#include<cstdint>
 bool AddFd(int epollfd,int fd);
 bool RemoveFd(int epollfd,int fd);
 bool ModifyFd(int epollfd,int fd,uint32_t ev);

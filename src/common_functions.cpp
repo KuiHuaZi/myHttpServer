@@ -12,6 +12,10 @@
 #include<sys/types.h>
 #include<sys/socket.h>
 #include<errno.h>
+#include<stdio.h>
+#include<unistd.h>
+#include<stdlib.h>
+#include<string.h>
 bool AddFd(int epollfd,int fd)
 {
 	epoll_event event;
@@ -23,7 +27,7 @@ bool AddFd(int epollfd,int fd)
 		printf("addfd:epoll_ctl failed\n");
 		return false;
 	}
-	ret = setnonblocking(fd);
+	ret = SetNonblocking(fd);
 	if(ret==-1)
 	{
 		printf("addfd:setnonblocking failed\n");
@@ -36,6 +40,18 @@ bool RemoveFd(int epollfd,int fd)
 	int ret = epoll_ctl(epollfd,EPOLL_CTL_DEL,fd,0);
 	if(ret == -1)
 	{
+		if(errno==EINVAL)
+		{
+			printf("EINVAL errno:%d  %s",errno,strerror(errno));
+		}
+		else if(errno==EBADF)
+		{
+			printf("EBADF errno:%d  %s",errno,strerror(errno));
+		}
+		else if(errno == ENOENT)
+		{
+			printf("ENOENT errno:%d  %s",errno,strerror(errno));
+		}
 		printf("removefd:epoll_clt failed!\n");
 		return false;
 	}
@@ -50,12 +66,25 @@ bool RemoveFd(int epollfd,int fd)
 }
 bool ModifyFd(int epollfd,int fd,uint32_t ev)
 {
-	epoll_event event;
+	struct epoll_event event;
 	event.data.fd = fd;
 	event.events = ev;
-	int ret = epoll_ctl(epollfd,fd,EPOLL_CTL_MOD,&event);
+	//event.events = EPOLLOUT;
+	int ret = epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&event);
 	if(ret == -1)
 	{
+		if(errno==EINVAL)
+		{
+			printf("EINVAL errno:%d  %s",errno,strerror(errno));
+		}
+		else if(errno==EBADF)
+		{
+			printf("EBADF errno:%d  %s",errno,strerror(errno));
+		}
+		else if(errno == ENOENT)
+		{
+			printf("ENOENT errno:%d  %s",errno,strerror(errno));
+		}
 		printf("modfd:epoll_ctl failed!\n");
 		return false;
 	}

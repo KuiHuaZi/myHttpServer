@@ -16,41 +16,23 @@
 #include<stdio.h>
 #include<string.h>
 //#define DEBUGHEAP
-const int connect_keep_time = 100;
 #define END -1
 class http_conn;
 class Timer
 {
 public:
-	Timer(int delay,http_conn *user,int fd):user_conn(user)
-	{
-		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
-		expire_struct.tv_sec+=delay;
-		expire = expire_struct.tv_sec;
-		cb_func = NULL;
-		cb_funct = NULL;
-		location_in_heap =-1;
-		_fd = fd;
-	}
-	Timer(int delay,int fd)
-	{
-		clock_gettime(CLOCK_MONOTONIC,&expire_struct);
-		expire_struct.tv_sec+=delay;
-		expire = expire_struct.tv_sec;
-		cb_func = NULL;
-		cb_funct = NULL;
-		user_conn = NULL;
-		location_in_heap =-1;
-		_fd = fd;
-	}
+	Timer(int delay,int fd = -2);
+	void ResetTimer(int delay,int fd = -2);
+	void AdjustTimer(int delay);
 public:
-	struct timespec expire_struct;
+	struct timespec _expire_struct;
 	int expire;
-	void(*cb_func)(http_conn*);
+	//void(*cb_func)(http_conn*);
 	void(*cb_funct)();
-	http_conn *user_conn;
+//	http_conn *user_conn;
 	int _fd;
 	int location_in_heap;
+	int _delay;
 };
 class TimerHeap
 {

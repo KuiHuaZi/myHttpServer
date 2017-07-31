@@ -297,19 +297,30 @@ void ProcessPool<T>::RunChild()
 			{
 				//todo:trick
 				int *expire_fd = heap.GetExpireAndSetNewTimer();
+				printf("Timer is expired!\n");
 				for(int i = 0; expire_fd[i]!=END;++i)
 				{
 					connections.RecyleConn(expire_fd[i]);
 					RemoveFd(_epollfd,expire_fd[i]);
 				}
 				delete[]expire_fd;
+				struct itimerspec ts;
+				memset(&ts,0,sizeof(ts));
+				if(heap.IsEmpty())
+				{
+					continue;
+				}
+				ts.it_value.tv_sec = heap.Min()->expire;
+				int flag = TIMER_ABSTIME;
+				int ret = timerfd_settime(time_fd,flag,&ts,NULL);
+				assert(ret == 0);
 
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
 				heap.UpdateTimer(connections.TimerOfConnect(sockfd));
-				ReturnCode ret = connections.Process(sockfd,READ);
-				switch(ret)
+				ReturnCode code = connections.Process(sockfd,READ);
+				switch(code)
 				{
 				case TOWRITE:
 					uint32_t ev = EPOLLOUT;
@@ -328,8 +339,8 @@ void ProcessPool<T>::RunChild()
 			else if(evlist[i].events & EPOLLOUT)
 			{
 				heap.UpdateTimer(connections.TimerOfConnect(sockfd));
-				ReturnCode ret = connections.Process(sockfd,WRITE);
-				switch(ret)
+				ReturnCode code = connections.Process(sockfd,WRITE);
+				switch(code)
 				{
 				case TOREAD:
 					uint32_t ev = EPOLLIN;

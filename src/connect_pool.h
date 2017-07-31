@@ -10,9 +10,6 @@
 #include<map>
 #include<set>
 #include<vector>
-#include<assert.h>
-#include<sys/epoll.h>
-//#include"http_conn.h"
 using std::map;
 using std::set;
 using std::vector;
@@ -27,8 +24,12 @@ public:
 	~ConnectPool();
 	ReturnCode Process(int connfd,OptType status);
 	void RecyleConn(int connfd);
-	bool AddConnect(int connfd);
+	bool AddConnect(int connfd,int connect_keep_time);
 	Timer*TimerOfConnect(int fd);
+	int NumberOfConnect()
+	{
+		return _connect_using.size();
+	}
 private:
 
 	//bool resize();
@@ -37,6 +38,7 @@ private:
 	set<Conn*> _connect_free;
 	Conn*_connect_pool;
 	int _cap;
+	//static int _connect_keep_time = 20;
 };
 
 #endif /* SRC_CONNECT_POOL_H_ */

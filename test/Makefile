@@ -1,0 +1,9 @@
+VPATH = ../src:~/workspace/myHttpServer/src
+EchoTest:echo.o time_heap.o
+	g++ -std=c++11 -L../src -g -o EchoTest echo.o time_heap.o
+echo.o:echo.cpp echo.h connect_pool.h
+	g++  -DDEBUG -std=c++11 -L../src -g -c echo.cpp
+time_heap.o:time_heap.cpp time_heap.h
+	g++  -std=c++11 -L../src -g -c time_heap.cpp
+clean:
+	rm EchoTest echo.o time_heap.o

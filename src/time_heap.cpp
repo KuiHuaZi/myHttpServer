@@ -6,6 +6,36 @@
  */
 
 #include"time_heap.h"
+Timer::	Timer(int delay,int fd)
+{
+	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
+	_expire_struct.tv_sec+=delay;
+	expire = _expire_struct.tv_sec;
+	//cb_func = NULL;
+	cb_funct = NULL;
+//	user_conn = NULL;
+	location_in_heap =-1;
+	_fd = fd;
+	_delay = delay;
+}
+void Timer::ResetTimer(int delay,int fd)
+{
+	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
+	_expire_struct.tv_sec+=delay;
+	expire = _expire_struct.tv_sec;
+//	cb_func = NULL;
+	cb_funct = NULL;
+	//user_conn = NULL;
+	location_in_heap =-1;
+	_fd = fd;
+	_delay = delay;
+}
+void Timer::AdjustTimer(int delay)
+{
+	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
+	_expire_struct.tv_sec+=delay;
+	expire = _expire_struct.tv_sec;
+}
 TimerHeap::TimerHeap(int cap)
 {
 	_cap = cap ;
@@ -23,10 +53,7 @@ TimerHeap::TimerHeap(int cap)
 
 TimerHeap::~TimerHeap()
 {
-	for(int i = 1; i <= _size;++i)
-	{
-		delete _heap[i];
-	}
+
 	delete[]_heap;
 }
 
@@ -54,19 +81,20 @@ void TimerHeap::DelTimer(Timer *t)
 	{
 		return;
 	}
-//	int index = t->location_in_heap;
-	t->cb_func = NULL;
+	int index = t->location_in_heap;
+	_heap[index] = _heap[_size--];
+	_heap[index]->location_in_heap = index;
+	sink(index);
 	return;
 }
-
 void TimerHeap::PopTimer()
 {
 	if(IsEmpty())
 	{
 		return;
 	}
-	delete _heap[1];
 	_heap[1] = _heap[_size--];
+	_heap[1]->location_in_heap = 1;
 	sink(1);
 	if((_size<100)&&(_size<_cap/4))
 	{
@@ -81,16 +109,11 @@ void TimerHeap::UpdateTimer(Timer *t)
 	{
 		return;
 	}
-
 	if(_heap[t->location_in_heap] != t)
 	{
 		return;
 	}
 	printf("Before Updata expire:%d ,location: %d \n",t->expire,t->location_in_heap);
-	clock_gettime(CLOCK_MONOTONIC,&t->expire_struct);
-	t->expire_struct.tv_sec+=connect_keep_time;
-	t->expire = t->expire_struct.tv_sec;
-
 	sink(t->location_in_heap);
 	printf("after Updata expire:%d ,location: %d \n",t->expire,t->location_in_heap);
 	return;
@@ -124,7 +147,7 @@ void TimerHeap::swim(int index)
 
 void TimerHeap::sink(int index)
 {
-	while(2*index < _size)
+	while(2*index <= _size)
 	{
 		int tmp = index * 2 ;
 		if((tmp < _size)&&(_heap[tmp]->expire > _heap[tmp+1]->expire))
@@ -183,10 +206,6 @@ void TimerHeap::Trick()
 		{
 			break;
 		}
-		if(tmp->cb_func)
-		{
-			tmp->cb_func(tmp->user_conn);
-		}
 		if(tmp->cb_funct)
 		{
 			tmp->cb_funct();
@@ -218,9 +237,9 @@ int* TimerHeap::GetExpireAndSetNewTimer()
 		tmp = _heap[1];
 	}
 	_expire_timer[i] = END;
-
+	return _expire_timer;
 }
-#ifdef DEBUGGEAP
+#ifdef DEBUG
 #include<sys/epoll.h>
 #include<errno.h>
 #include<stdlib.h>
