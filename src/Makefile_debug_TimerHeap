@@ -1,0 +1,6 @@
+VPATH = ../src:~/workspace/myHttpServer/src
+TimerHeapTest:time_heap.cpp time_heap.h
+	g++ -DDEBUG -g -o TimerHeapTest time_heap.cpp
+.PHONY:clean
+clean:
+	-rm TimerHeapTest

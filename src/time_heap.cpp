@@ -6,15 +6,21 @@
  */
 
 #include"time_heap.h"
+#include<time.h>
+#include<netinet/in.h>
+#include<exception>
+#include<iostream>
+#include<sys/timerfd.h>
+#include<assert.h>
+#include<stdio.h>
+#include<string.h>
 Timer::	Timer(int delay,int fd)
 {
 	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
 	_expire_struct.tv_sec+=delay;
-	expire = _expire_struct.tv_sec;
-	//cb_func = NULL;
+	_expire = _expire_struct.tv_sec;
 	cb_funct = NULL;
-//	user_conn = NULL;
-	location_in_heap =-1;
+	_location_in_heap =-1;
 	_fd = fd;
 	_delay = delay;
 }
@@ -22,11 +28,9 @@ void Timer::ResetTimer(int delay,int fd)
 {
 	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
 	_expire_struct.tv_sec+=delay;
-	expire = _expire_struct.tv_sec;
-//	cb_func = NULL;
+	_expire = _expire_struct.tv_sec;
 	cb_funct = NULL;
-	//user_conn = NULL;
-	location_in_heap =-1;
+	_location_in_heap =-1;
 	_fd = fd;
 	_delay = delay;
 }
@@ -34,7 +38,7 @@ void Timer::AdjustTimer(int delay)
 {
 	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
 	_expire_struct.tv_sec+=delay;
-	expire = _expire_struct.tv_sec;
+	_expire = _expire_struct.tv_sec;
 }
 TimerHeap::TimerHeap(int cap)
 {
@@ -57,33 +61,24 @@ TimerHeap::~TimerHeap()
 	delete[]_heap;
 }
 
-void TimerHeap::InsertTimer(Timer*t)
+void TimerHeap::InsertTimer(Timer&t)
 {
-	if(!t)return;
 	if(_size == _cap) resize(_cap * 2);
-	_heap[++_size] = t;
-	t->location_in_heap = _size;
+	_heap[++_size] = &t;
+	t._location_in_heap = _size;
 	swim(_size);
 }
 
-const Timer* TimerHeap::Min()
+const Timer& TimerHeap::Min()
 {
-	if(IsEmpty())
-	{
-		return NULL;
-	}
-	return _heap[1];
+	return *_heap[1];
 }
 
-void TimerHeap::DelTimer(Timer *t)
+void TimerHeap::DelTimer(Timer &t)
 {
-	if(!t)
-	{
-		return;
-	}
-	int index = t->location_in_heap;
+	int index = t._location_in_heap;
 	_heap[index] = _heap[_size--];
-	_heap[index]->location_in_heap = index;
+	_heap[index]->_location_in_heap = index;
 	sink(index);
 	return;
 }
@@ -94,7 +89,7 @@ void TimerHeap::PopTimer()
 		return;
 	}
 	_heap[1] = _heap[_size--];
-	_heap[1]->location_in_heap = 1;
+	_heap[1]->_location_in_heap = 1;
 	sink(1);
 	if((_size<100)&&(_size<_cap/4))
 	{
@@ -103,19 +98,17 @@ void TimerHeap::PopTimer()
 	return;
 }
 
-void TimerHeap::UpdateTimer(Timer *t)
+void TimerHeap::UpdateTimer(Timer &tmp)
 {
-	if(!t)
+
+	Timer*t = &tmp;
+	if(_heap[t->_location_in_heap] != t)
 	{
 		return;
 	}
-	if(_heap[t->location_in_heap] != t)
-	{
-		return;
-	}
-	printf("Before Updata expire:%d ,location: %d \n",t->expire,t->location_in_heap);
-	sink(t->location_in_heap);
-	printf("after Updata expire:%d ,location: %d \n",t->expire,t->location_in_heap);
+	printf("Before Update location: %d \n",t->_location_in_heap);
+	sink(t->_location_in_heap);
+	printf("after Update location: %d \n",t->_location_in_heap);
 	return;
 
 }
@@ -135,62 +128,6 @@ int TimerHeap::size()
 	return _size;
 }
 
-void TimerHeap::swim(int index)
-{
-	while((index > 1) && (_heap[index]->expire < _heap[index/2]->expire))
-	{
-		swap(index,index/2);
-		index/=2;
-	}
-
-}
-
-void TimerHeap::sink(int index)
-{
-	while(2*index <= _size)
-	{
-		int tmp = index * 2 ;
-		if((tmp < _size)&&(_heap[tmp]->expire > _heap[tmp+1]->expire))
-		{
-			++tmp;
-		}
-		if(_heap[index]->expire < _heap[tmp]->expire)
-		{
-			break;
-		}
-		swap(index,tmp);
-		index = tmp;
-	}
-}
-
-void TimerHeap::swap(int i,int j)
-{
-	Timer* t = _heap[i];
-	_heap[i] = _heap[j];
-	_heap[i]->location_in_heap = i;
-	_heap[j] = t;
-	t->location_in_heap = j;
-}
-void TimerHeap::resize(int cap)
-{
-	Timer** temp = new Timer*[cap];
-	if(!temp)
-	{
-		throw std::exception();
-	}
-	for(int i = 0;i < cap;++i)
-	{
-		temp[i] = NULL;
-	}
-	_cap = cap;
-	for(int i = 1 ; i <= _size;++i)
-	{
-		temp[i] = _heap[i];
-	}
-	delete[]_heap;
-	_heap = temp;
-}
-
 void TimerHeap::Trick()
 {
 	Timer *tmp = _heap[1];
@@ -202,7 +139,7 @@ void TimerHeap::Trick()
 		{
 			break;
 		}
-		if(tmp->expire > cur.tv_sec)
+		if(tmp->_expire > cur.tv_sec)
 		{
 			break;
 		}
@@ -226,7 +163,7 @@ int* TimerHeap::GetExpireAndSetNewTimer()
 		{
 			break;
 		}
-		if(tmp->expire > cur.tv_sec)
+		if(tmp->_expire > cur.tv_sec)
 		{
 			break;
 		}
@@ -239,6 +176,69 @@ int* TimerHeap::GetExpireAndSetNewTimer()
 	_expire_timer[i] = END;
 	return _expire_timer;
 }
+void TimerHeap::PrintHeap()
+{
+	for(int i = 1; i <= _size;++i)
+	{
+		printf("heap[%d]: %ld  ",i,_heap[i]->Expire());
+	}
+}
+void TimerHeap::swim(int index)
+{
+	while((index > 1) && (_heap[index]->_expire < _heap[index/2]->_expire))
+	{
+		swap(index,index/2);
+		index/=2;
+	}
+
+}
+
+void TimerHeap::sink(int index)
+{
+	while(2*index <= _size)
+	{
+		int tmp = index * 2 ;
+		if((tmp < _size)&&(_heap[tmp]->_expire > _heap[tmp+1]->_expire))
+		{
+			++tmp;
+		}
+		if(_heap[index]->_expire < _heap[tmp]->_expire)
+		{
+			break;
+		}
+		swap(index,tmp);
+		index = tmp;
+	}
+}
+
+void TimerHeap::swap(int i,int j)
+{
+	Timer* t = _heap[i];
+	_heap[i] = _heap[j];
+	_heap[i]->_location_in_heap = i;
+	_heap[j] = t;
+	t->_location_in_heap = j;
+}
+void TimerHeap::resize(int cap)
+{
+	Timer** temp = new Timer*[cap];
+	if(!temp)
+	{
+		throw std::exception();
+	}
+	for(int i = 0;i < cap;++i)
+	{
+		temp[i] = NULL;
+	}
+	_cap = cap;
+	for(int i = 1 ; i <= _size;++i)
+	{
+		temp[i] = _heap[i];
+	}
+	delete[]_heap;
+	_heap = temp;
+}
+
 #ifdef DEBUG
 #include<sys/epoll.h>
 #include<errno.h>
@@ -247,7 +247,7 @@ void cb_func()
 {
 	struct timespec cur;
 	clock_gettime(CLOCK_MONOTONIC,&cur);
-	printf("Time now: %d\n",cur.tv_sec);
+	printf("Time now: %ld\n",cur.tv_sec);
 }
 static void Test()
 {
@@ -295,44 +295,36 @@ static void Test()
 							std::cin>>time;
 							t = new Timer(time);
 							t->cb_funct = cb_func;
-							heap.InsertTimer(t);
-							if(heap._size==1)
+							heap.InsertTimer(*t);
+							if(heap.size()==1)
 							{
 								struct itimerspec ts;
 								memset(&ts,0,sizeof(ts));
-								ts.it_value = heap.Min()->expire_struct;
+								ts.it_value.tv_sec = heap.Min().Expire();
 								int flag = TIMER_ABSTIME;
 								int ret = timerfd_settime(time_fd,flag,&ts,NULL);
 								assert(ret == 0);
 							}
 							break;
 						case 'p':
-							for(int i = 1; i <= heap._size;++i)
-							{
-								printf("heap[%d]: %d  ",i,heap._heap[i]->expire);
-							}
+							heap.PrintHeap();
 							break;
 						case'u':
 							int index;
 							std::cin>>index;
 							if(index<=heap.size())
 							{
-								for(int i = 1; i <= heap._size;++i)
-								{
-									printf("heap[%d]: %d  ",i,heap._heap[i]->expire);
-								}
+								heap.PrintHeap();
 								printf("\n");
-								heap.UpdateTimer(heap._heap[index]);
-								for(int i = 1; i <= heap._size;++i)
-								{
-									printf("heap[%d]: %d  ",i,heap._heap[i]->expire);
-								}
-
+								heap._heap[index]->AdjustTimer(10);
+								heap.UpdateTimer(*heap._heap[index]);
+								heap.PrintHeap();
 							}
+							break;
 						case'n':
 							struct timespec cur;
 							clock_gettime(CLOCK_MONOTONIC,&cur);
-							printf("Time now: %d\n",cur.tv_sec);
+							printf("Time now: %ld\n",cur.tv_sec);
 							break;
 						case '-':
 							break;
@@ -354,7 +346,7 @@ static void Test()
 					{
 						continue;
 					}
-					ts.it_value.tv_sec = heap.Min()->expire;
+					ts.it_value.tv_sec = heap.Min().Expire();
 					int flag = TIMER_ABSTIME;
 					int ret = timerfd_settime(time_fd,flag,&ts,NULL);
 					assert(ret == 0);

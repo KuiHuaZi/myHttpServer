@@ -1,4 +1,3 @@
-VPATH = ../src:~/workspace/myHttpServer/src
 ConnectPoolTest:connect_pool.o common_functions.o echo.o time_heap.o
 	g++ -std=c++11 -g -o ConnectPoolTest connect_pool.o echo.o time_heap.o common_functions.o
 connect_pool.o:connect_pool.cpp connect_pool.h common_functions.h echo.h time_heap.h
@@ -9,5 +8,6 @@ echo.o:echo.cpp echo.h connect_pool.h
 	g++ -std=c++11 -g -c echo.cpp
 time_heap.o:time_heap.cpp time_heap.h
 	g++  -std=c++11 -g -c time_heap.cpp
+.PHONY:clean
 clean:
-	rm ConnectPoolTest echo.o time_heap.o common_functions.o connect_pool.o
+	-rm ConnectPoolTest echo.o time_heap.o common_functions.o connect_pool.o

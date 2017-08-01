@@ -22,23 +22,27 @@ class ConnectPool
 public:
 	ConnectPool(int size);
 	~ConnectPool();
-	ReturnCode Process(int connfd,OptType status);
-	void RecyleConn(int connfd);
 	bool AddConnect(int connfd,int connect_keep_time);
-	Timer*TimerOfConnect(int fd);
-	int NumberOfConnect()
+	void RecyleConn(int connfd);
+	ReturnCode Process(int connfd,OptType status);
+	bool IsContainConnection(int connfd)
+	{
+		return _connect_using.count(connfd);
+	}
+	Timer&TimerOfConnect(int fd);
+	int NumberOfUsingConnect()
 	{
 		return _connect_using.size();
 	}
-private:
-
-	//bool resize();
+	int NumberOfFreeConnect()
+	{
+		return _connect_free.size();
+	}
 private:
 	map<int,Conn*> _connect_using;
 	set<Conn*> _connect_free;
 	Conn*_connect_pool;
 	int _cap;
-	//static int _connect_keep_time = 20;
 };
 
 #endif /* SRC_CONNECT_POOL_H_ */

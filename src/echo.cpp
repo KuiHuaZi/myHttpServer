@@ -6,6 +6,7 @@
  */
 #include<unistd.h>
 #include<errno.h>
+#include<string.h>
 #include"echo.h"
 #include"time_heap.h"
 Echo::Echo()
@@ -81,9 +82,9 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 	return true;
 
 }
-Timer* Echo::GetTimer()
+Timer& Echo::GetTimer()
 {
-	return _timer;
+	return *_timer;
 }
 ReturnCode Echo::Process(OptType option)
 {

@@ -7,7 +7,6 @@
 
 #ifndef SRC_ECHO_H_
 #define SRC_ECHO_H_
-//#define DEBUG
 #include"connect_pool.h"
 class Timer;
 const int MAX_BUFFER_SIZE = 100;
@@ -18,7 +17,7 @@ public:
 	~Echo();
 	bool Init(int connfd,int connect_keep_time,int recv_size=MAX_BUFFER_SIZE,int send_size=MAX_BUFFER_SIZE);
 	ReturnCode Process(OptType option);
-	Timer*GetTimer();
+	Timer&GetTimer();
 private:
 	ReturnCode readLine();
 	ReturnCode writeLine();

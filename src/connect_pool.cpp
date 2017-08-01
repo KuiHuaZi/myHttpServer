@@ -30,32 +30,7 @@ ConnectPool<Conn>::~ConnectPool()
 	delete[]_connect_pool;
 
 }
-template<class Conn>
-ReturnCode ConnectPool<Conn>::Process(int fd,OptType status)
-{
-	ReturnCode ret;
-	if(_connect_using.count(fd)==0)
-	{
-		printf("ConnectPool::Process:no this fd %d in pool!\n",fd);
-		return TOCLOSE;
-	}
-	else if(status == CLOSE)
-	{
-		//RecyleConn(fd);
-		return TOCLOSE;
-	}
-	else
-	{
-		Conn*tmp = _connect_using.at(fd);
-		 ret = tmp->Process(status);
-		if(ret == TOCLOSE)
-		{
-			//RecyleConn(fd);
-			return TOCLOSE;
-		}
-	}
-	return ret;
-}
+
 template<class Conn>
 bool ConnectPool<Conn>::AddConnect(int connfd,int connect_keep_time)
 {
@@ -88,12 +63,29 @@ void ConnectPool<Conn>::RecyleConn(int connfd)
 
 }
 template<class Conn>
-Timer* ConnectPool<Conn>::TimerOfConnect(int connfd)
+ReturnCode ConnectPool<Conn>::Process(int fd,OptType status)
 {
-	if(_connect_using.count(connfd)==0)
+	ReturnCode ret;
+	if(_connect_using.count(fd)==0)
 	{
-		return nullptr;
+		printf("ConnectPool::Process:no this fd %d in pool!\n",fd);
+		return TOCLOSE;
 	}
+	else if(status == CLOSE)
+	{
+		//RecyleConn(fd);
+		return TOCLOSE;
+	}
+	else
+	{
+		Conn*tmp = _connect_using.at(fd);
+		 ret = tmp->Process(status);
+	}
+	return ret;
+}
+template<class Conn>
+Timer& ConnectPool<Conn>::TimerOfConnect(int connfd)
+{
 	Conn* tmp = _connect_using.at(connfd);
 	return tmp->GetTimer();
 }
@@ -115,15 +107,15 @@ int main()
 	address.sin_family = AF_INET;
 	inet_aton("127.0.0.1",&address.sin_addr);
 	address.sin_port = htons(8080);
-	const int connect_keep_time = 10;
+	const int connect_keep_time = 6000;
 	int ret = bind(listen_fd,(struct sockaddr*)&address,sizeof(address));
 	assert(ret==0);
 	ret = listen(listen_fd,5);
 	int epoll_fd = epoll_create(5);
 	struct epoll_event evlist[10];
 	AddFd(epoll_fd,listen_fd);
-	ConnectPool<Echo> connect_pool(2);
-	TimerHeap timers(2);
+	ConnectPool<Echo> connect_pool(100);
+	TimerHeap timers(100);
 	int time_fd = timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK);
 	AddFd(epoll_fd,time_fd);
 	uint32_t ev = EPOLLIN|EPOLLET;
@@ -156,7 +148,7 @@ int main()
 					close(newfd);
 					continue;
 				}
-				Timer *tmp = connect_pool.TimerOfConnect(newfd);
+				Timer &tmp = connect_pool.TimerOfConnect(newfd);
 				timers.InsertTimer(tmp);
 				AddFd(epoll_fd,newfd);
 				printf("Add new fd:%d\n",newfd);
@@ -164,7 +156,7 @@ int main()
 				{
 					struct itimerspec ts;
 					memset(&ts,0,sizeof(ts));
-					ts.it_value.tv_sec = timers.Min()->expire;
+					ts.it_value.tv_sec = timers.Min().Expire();
 					int flag = TIMER_ABSTIME;
 					ret = timerfd_settime(time_fd,flag,&ts,NULL);
 					assert(ret == 0);
@@ -179,7 +171,7 @@ int main()
 				{
 					connect_pool.RecyleConn(expire_fd[i]);
 					RemoveFd(epoll_fd,expire_fd[i]);
-					printf("Remove fd:%d",expire_fd[i]);
+					printf("Remove fd:%d\n",expire_fd[i]);
 				}
 				if(timers.IsEmpty())
 				{
@@ -187,7 +179,7 @@ int main()
 				}
 				struct itimerspec ts;
 				memset(&ts,0,sizeof(ts));
-				ts.it_value.tv_sec = timers.Min()->expire;
+				ts.it_value.tv_sec = timers.Min().Expire();
 				int flag = TIMER_ABSTIME;
 				ret = timerfd_settime(time_fd,flag,&ts,NULL);
 				assert(ret == 0);
@@ -202,8 +194,8 @@ int main()
 				printf("connection:%d have data to read!\n",sockfd);
 				code = connect_pool.Process(sockfd,READ);
 				printf("update timer!\n");
-				Timer *tmp = connect_pool.TimerOfConnect(sockfd);
-				tmp->AdjustTimer(connect_keep_time);
+				Timer &tmp = connect_pool.TimerOfConnect(sockfd);
+				tmp.AdjustTimer(connect_keep_time);
 				timers.UpdateTimer(tmp);
 				uint32_t ev= EPOLLOUT;
 				switch(code)
@@ -229,9 +221,6 @@ int main()
 			{
 				printf("connection:%d have data to write!\n",sockfd);
 				code = connect_pool.Process(sockfd,WRITE);
-				Timer *tmp = connect_pool.TimerOfConnect(sockfd);
-				tmp->AdjustTimer(connect_keep_time);
-				timers.UpdateTimer(tmp);
 				uint32_t ev= EPOLLIN;
 				switch(code)
 				{
@@ -243,7 +232,7 @@ int main()
 					printf("WRITE to CLOSE\n");
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(epoll_fd,sockfd);
-					timers.DelTimer(tmp);
+					timers.DelTimer(connect_pool.TimerOfConnect(sockfd));
 					break;
 				case TOWRITE:
 				case CONTINUE:
