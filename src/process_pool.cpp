@@ -43,8 +43,7 @@ int main(int argc,char* argv[])
 	assert(ret==0);
 	ret = listen(listenfd,5);
 	assert(ret==0);
-	//todo:use process_poll class creat process
-ProcessPool<Echo>&pool = ProcessPool<Echo>::instance(listenfd,2);
+	ProcessPool<Echo>&pool = ProcessPool<Echo>::instance(listenfd,2);
 	pool.Run();
 
 	close(listenfd);
