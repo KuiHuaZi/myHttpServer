@@ -16,7 +16,6 @@
 #include <stdarg.h>
 #include <errno.h>
 #include "http_conn.h"
-//#include "common_functions.h"
 #include"time_heap.h"
 const char* ok_200_title = "OK";
 const char* error_400_title = "Bad Request";
@@ -71,14 +70,14 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
     	_read_buf = new char[READ_BUFFER_SIZE];
     	if(!_read_buf)
     	{
-    		printf("HttpConn::init new failed!\n");
+    		log("HttpConn::init new failed!\n");
     		return false;
     	}
     	_read_buf_size = READ_BUFFER_SIZE;
     	_write_buf = new char[WRITE_BUFFER_SIZE];
     	if(!_write_buf)
     	{
-    		printf("HttpConn::init new failed!\n");
+    		log("HttpConn::init new failed!\n");
     		delete[]_read_buf;
     		return false;
     	}
@@ -86,7 +85,7 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
         _timer = new Timer(connect_keep_time);
         if(!_timer)
         {
-        	printf("HttpConn::init _timer new failed!\n");
+        	log("HttpConn::init _timer new failed!\n");
         	delete[]_read_buf;
         	delete[]_write_buf;
         	return false;
@@ -218,7 +217,7 @@ HttpConn::HTTP_CODE HttpConn::parse_request_line( char* text )
     {
         return BAD_REQUEST;
     }
-    printf("url:%s\n",_url);
+    log("url:%s\n",_url);
     _check_state = CHECK_STATE_HEADER;
     return NO_REQUEST;
 }
@@ -263,7 +262,7 @@ HttpConn::HTTP_CODE HttpConn::parse_headers( char* text )
     }
     else
     {
-        printf( "oop! unknow header %s\n", text );
+        log( "oop! unknow header %s\n", text );
     }
 
     return NO_REQUEST;
@@ -292,7 +291,7 @@ HttpConn::HTTP_CODE HttpConn::process_read()
     {
         text = get_line();
         _start_line = _checked_idx;
-        printf( "got 1 http line: %s\n", text );
+        log( "got 1 http line: %s\n", text );
 
         switch (_check_state )
         {
@@ -343,7 +342,7 @@ HttpConn::HTTP_CODE HttpConn::do_request()
     strcpy( _real_file, doc_root );
     int len = strlen( doc_root );
     strncpy( _real_file + len, _url, FILENAME_LEN - len - 1 );
-    printf("file name:%s\n",_real_file);
+    log("file name:%s\n",_real_file);
     if ( stat( _real_file, &_file_stat ) < 0 )
     {
         return NO_RESOURCE;
@@ -591,7 +590,6 @@ ReturnCode HttpConn::Process(OptType option)
 	    return code;
 	}
 	return TOCLOSE;
-
 }
 #ifdef DEBUG
 #include "connect_pool.h"
@@ -633,17 +631,17 @@ int main()
 	while(!_stop)
 	{
 		int nfds = epoll_wait(epoll_fd,evlist,10,-1);
-		printf("epoll_wait:success! nfds%d \n",nfds);
+		log("epoll_wait:success! nfds%d \n",nfds);
 		for(int i = 0; i < nfds; ++i)
 		{
 			int sockfd = evlist[i].data.fd;
 			if((sockfd==listen_fd)&&(evlist[i].events&EPOLLIN))
 			{
-				printf("new client coming!\n");
+				log("new client coming!\n");
 				int newfd = accept(listen_fd,nullptr,0);
 				if(newfd<0)
 				{
-					printf("accept failed!\n");
+					log("accept failed!\n");
 					continue;
 				}
 				if(!connect_pool.AddConnect(newfd,connect_keep_time))
@@ -655,7 +653,7 @@ int main()
 				Timer &tmp = connect_pool.TimerOfConnect(newfd);
 				timers.InsertTimer(tmp);
 				AddFd(epoll_fd,newfd);
-				printf("Add new fd:%d\n",newfd);
+				log("Add new fd:%d\n",newfd);
 				if(timers.size()==1)
 				{
 					struct itimerspec ts;
@@ -670,12 +668,12 @@ int main()
 			{
 				//todo:trick
 				int *expire_fd = timers.GetExpireAndSetNewTimer();
-				printf("Timer is expired!\n");
+				log("Timer is expired!\n");
 				for(int i = 0; expire_fd[i]!=END;++i)
 				{
 					connect_pool.RecyleConn(expire_fd[i]);
 					RemoveFd(epoll_fd,expire_fd[i]);
-					printf("Remove fd:%d\n",expire_fd[i]);
+					log("Remove fd:%d\n",expire_fd[i]);
 				}
 				if(timers.IsEmpty())
 				{
@@ -690,14 +688,14 @@ int main()
 			}
 			else if(sockfd == 0)
 			{
-				printf("stop!\n");
+				log("stop!\n");
 				_stop = true;
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
-				printf("connection:%d have data to read!\n",sockfd);
+				log("connection:%d have data to read!\n",sockfd);
 				code = connect_pool.Process(sockfd,READ);
-				printf("update timer!\n");
+				log("update timer!\n");
 				Timer &tmp = connect_pool.TimerOfConnect(sockfd);
 				tmp.AdjustTimer(connect_keep_time);
 				timers.UpdateTimer(tmp);
@@ -705,11 +703,11 @@ int main()
 				switch(code)
 				{
 				case TOWRITE:
-					printf("READ to WRITE!\n");
+					log("READ to WRITE!\n");
 					ModifyFd(epoll_fd,sockfd,ev);
 					break;
 				case TOCLOSE:
-					printf("READ to CLOSE\n");
+					log("READ to CLOSE\n");
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(epoll_fd,sockfd);
 					timers.DelTimer(tmp);
@@ -717,23 +715,23 @@ int main()
 				case TOREAD:
 				case CONTINUE:
 				default:
-					printf("CONTINUE!\n");
+					log("CONTINUE!\n");
 					break;
 				}
 			}
 			else if(evlist[i].events & EPOLLOUT)
 			{
-				printf("connection:%d have data to write!\n",sockfd);
+				log("connection:%d have data to write!\n",sockfd);
 				code = connect_pool.Process(sockfd,WRITE);
 				uint32_t ev= EPOLLIN;
 				switch(code)
 				{
 				case TOREAD:
-					printf("WRITE to READ\n");
+					log("WRITE to READ\n");
 					ModifyFd(epoll_fd,sockfd,ev);
 					break;
 				case TOCLOSE:
-					printf("WRITE to CLOSE\n");
+					log("WRITE to CLOSE\n");
 					timers.DelTimer(connect_pool.TimerOfConnect(sockfd));
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(epoll_fd,sockfd);
@@ -741,7 +739,7 @@ int main()
 				case TOWRITE:
 				case CONTINUE:
 				default:
-					printf("CONTINUE!\n");
+					log("CONTINUE!\n");
 					break;
 				}
 			}

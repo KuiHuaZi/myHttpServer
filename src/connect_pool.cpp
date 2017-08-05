@@ -45,17 +45,17 @@ int main()
 	while(!_stop)
 	{
 		int nfds = epoll_wait(epoll_fd,evlist,10,-1);
-		printf("epoll_wait:success! nfds%d \n",nfds);
+		log("epoll_wait:success! nfds%d \n",nfds);
 		for(int i = 0; i < nfds; ++i)
 		{
 			int sockfd = evlist[i].data.fd;
 			if((sockfd==listen_fd)&&(evlist[i].events&EPOLLIN))
 			{
-				printf("new client coming!\n");
+				log("new client coming!\n");
 				int newfd = accept(listen_fd,nullptr,0);
 				if(newfd<0)
 				{
-					printf("accept failed!\n");
+					log("accept failed!\n");
 					continue;
 				}
 				if(!connect_pool.AddConnect(newfd,connect_keep_time))
@@ -67,7 +67,7 @@ int main()
 				Timer &tmp = connect_pool.TimerOfConnect(newfd);
 				timers.InsertTimer(tmp);
 				AddFd(epoll_fd,newfd);
-				printf("Add new fd:%d\n",newfd);
+				log("Add new fd:%d\n",newfd);
 				if(timers.size()==1)
 				{
 					struct itimerspec ts;
@@ -82,12 +82,12 @@ int main()
 			{
 				//todo:trick
 				int *expire_fd = timers.GetExpireAndSetNewTimer();
-				printf("Timer is expired!\n");
+				log("Timer is expired!\n");
 				for(int i = 0; expire_fd[i]!=END;++i)
 				{
 					connect_pool.RecyleConn(expire_fd[i]);
 					RemoveFd(epoll_fd,expire_fd[i]);
-					printf("Remove fd:%d\n",expire_fd[i]);
+					log("Remove fd:%d\n",expire_fd[i]);
 				}
 				if(timers.IsEmpty())
 				{
@@ -102,14 +102,14 @@ int main()
 			}
 			else if(sockfd == 0)
 			{
-				printf("stop!\n");
+				log("stop!\n");
 				_stop = true;
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
-				printf("connection:%d have data to read!\n",sockfd);
+				log("connection:%d have data to read!\n",sockfd);
 				code = connect_pool.Process(sockfd,READ);
-				printf("update timer!\n");
+				log("update timer!\n");
 				Timer &tmp = connect_pool.TimerOfConnect(sockfd);
 				tmp.AdjustTimer(connect_keep_time);
 				timers.UpdateTimer(tmp);
@@ -117,11 +117,11 @@ int main()
 				switch(code)
 				{
 				case TOWRITE:
-					printf("READ to WRITE!\n");
+					log("READ to WRITE!\n");
 					ModifyFd(epoll_fd,sockfd,ev);
 					break;
 				case TOCLOSE:
-					printf("READ to CLOSE\n");
+					log("READ to CLOSE\n");
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(epoll_fd,sockfd);
 					timers.DelTimer(tmp);
@@ -129,23 +129,23 @@ int main()
 				case TOREAD:
 				case CONTINUE:
 				default:
-					printf("CONTINUE!\n");
+					log("CONTINUE!\n");
 					break;
 				}
 			}
 			else if(evlist[i].events & EPOLLOUT)
 			{
-				printf("connection:%d have data to write!\n",sockfd);
+				log("connection:%d have data to write!\n",sockfd);
 				code = connect_pool.Process(sockfd,WRITE);
 				uint32_t ev= EPOLLIN;
 				switch(code)
 				{
 				case TOREAD:
-					printf("WRITE to READ\n");
+					log("WRITE to READ\n");
 					ModifyFd(epoll_fd,sockfd,ev);
 					break;
 				case TOCLOSE:
-					printf("WRITE to CLOSE\n");
+					log("WRITE to CLOSE\n");
 					timers.DelTimer(connect_pool.TimerOfConnect(sockfd));
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(epoll_fd,sockfd);
@@ -154,7 +154,7 @@ int main()
 				case TOWRITE:
 				case CONTINUE:
 				default:
-					printf("CONTINUE!\n");
+					log("CONTINUE!\n");
 					break;
 				}
 			}

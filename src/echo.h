@@ -7,7 +7,7 @@
 
 #ifndef SRC_ECHO_H_
 #define SRC_ECHO_H_
-#include"connect_pool.h"
+#include"common_functions.h"
 class Timer;
 const int MAX_BUFFER_SIZE = 100;
 class Echo

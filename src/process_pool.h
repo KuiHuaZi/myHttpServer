@@ -19,7 +19,6 @@
 #include<sys/wait.h>
 #include<sys/types.h>
 #include<string.h>
-#include"process_pool.h"
 #include"time_heap.h"
 #include"connect_pool.h"
 #include "common_functions.h"
@@ -39,9 +38,9 @@ template< class T>
 class ProcessPool
 {
 public:
-	static ProcessPool<T>& instance(int listenfd,int process_number)
+	static ProcessPool<T>& instance(int listenfd,int process_number = 8,int connections_number_per_process = USER_PER_PROCESS)
 	{
-		static ProcessPool<T>processpool(listenfd,process_number);
+		static ProcessPool<T>processpool(listenfd,process_number,connections_number_per_process);
 		return processpool;
 	}
 	~ProcessPool()
@@ -50,7 +49,7 @@ public:
 	}
 	void Run();
 private:
-	ProcessPool(int listenfd,int process_number = 8);
+	ProcessPool(int listenfd,int process_number,int connections_number_per_process);
 	ProcessPool(ProcessPool<T> const&);
 	ProcessPool<T>& operator=(ProcessPool<T> const&);
 	void RunChild();
@@ -70,7 +69,7 @@ private:
 	static const int USER_PER_PROCESS = 65536;
 	static const int MAX_EVENT_NUMBER = 10000;
 	static const int CONNECT_KEEP_TIME = 100;
-
+	int _connections_number_per_process;
 
 };
 static int sig_pipefd[2];
@@ -96,8 +95,8 @@ void AddSig(int sig,void(*handler)(int),bool restart = true)
 
 }
 template<class T>
-ProcessPool<T>::ProcessPool(int listenfd,int process_number)
-:_listenfd(listenfd),_process_number(process_number),_stop(false),_index(-1),_epollfd(-1),_connect_number(-1)
+ProcessPool<T>::ProcessPool(int listenfd,int process_number,int connections_number_per_process)
+:_listenfd(listenfd),_process_number(process_number),_connections_number_per_process(connections_number_per_process),_stop(false),_index(-1),_epollfd(-1),_connect_number(-1)
 {
 
 	assert(listenfd>=0);
@@ -191,7 +190,7 @@ void ProcessPool<T>::RunParent()
 		 nfds = epoll_wait(_epollfd,evlist,2,-1);
 		 if((nfds < 0) && (errno != EINTR))
 		 {
-			 printf("RunParent:epoll_wait failed!\n");
+			 log("RunParent:epoll_wait failed!\n");
 			 break;
 		 }
 		 for(int i = 0; i < nfds; ++i)
@@ -213,7 +212,7 @@ void ProcessPool<T>::RunParent()
 						switch(signals[j])
 						{
 						case SIGCHLD:
-							printf("Signal:SIGCHLD\n");
+							log("Signal:SIGCHLD\n");
 							pid_t child_pid;
 							int stat;
 							while((child_pid = waitpid(-1,&stat,WNOHANG))>0)
@@ -229,7 +228,7 @@ void ProcessPool<T>::RunParent()
 									{
 										_sub_process[k]._pid = -1;
 										close(_sub_process[k]._pipefd[0]);
-										printf("child process %d end!\n",child_pid);
+										log("child process %d end!\n",child_pid);
 									}
 								}
 
@@ -238,7 +237,7 @@ void ProcessPool<T>::RunParent()
 						case SIGTERM:
 						case SIGINT:
 						{
-							printf("kill all child !\n");
+							log("kill all child !\n");
 							for(int k = 0; k < _process_number; ++k)
 							{
 								if(_sub_process[k]._pid!=-1)
@@ -268,11 +267,11 @@ void ProcessPool<T>::RunParent()
 					 break;
 				 }
 				 send(_sub_process[count_of_connect]._pipefd[0],(char*)&new_connect,sizeof(new_connect),0);
-				 printf("send request to child %d\n",count_of_connect);
+				 log("send request to child %d\n",count_of_connect);
 				 ++count_of_connect;*/
 	                int index = GetLeastConnectNumberProcess();
 	                send( _sub_process[index]._pipefd[0], ( char* )&new_connect, sizeof( new_connect ), 0 );
-					printf("send request to child %d\n",_sub_process[index]._pid);
+					log("send request to child %d\n",_sub_process[index]._pid);
 			 }
 			 else if(evlist[i].events & EPOLLIN)
 			 {
@@ -287,7 +286,7 @@ void ProcessPool<T>::RunParent()
 	                    if( sockfd == _sub_process[i]._pipefd[0] )
 	                    {
 	                        _sub_process[i]._connect_number = connect_number;
-	            			printf("sub Process:%d have connect number:%d\n",_sub_process[i]._pid,connect_number);
+	            			log("sub Process:%d have connect number:%d\n",_sub_process[i]._pid,connect_number);
 	                        break;
 	                    }
 	                }
@@ -304,7 +303,7 @@ void ProcessPool<T>::RunChild()
 	int my_pid=_sub_process[_index]._pid = getpid();
 	int pipefd_with_parent =_sub_process[_index]._pipefd[1];
 	AddFd(_epollfd,pipefd_with_parent);
-	TimerHeap timers(USER_PER_PROCESS);
+	TimerHeap timers(_connections_number_per_process);
 	struct epoll_event evlist[MAX_EVENT_NUMBER];
 	int time_fd = timerfd_create(CLOCK_MONOTONIC,TFD_NONBLOCK);
 	AddFd(_epollfd,time_fd);
@@ -312,16 +311,16 @@ void ProcessPool<T>::RunChild()
 	ModifyFd(_epollfd,time_fd,ev);
 /*	while(!AddFd(_epollfd,time_fd))
 	{
-		printf("Process %d RunChild:add time_fd failed!\n",_sub_process[_index]._pid);
+		log("Process %d RunChild:add time_fd failed!\n",_sub_process[_index]._pid);
 	}*/
-	ConnectPool<T> connect_pool(USER_PER_PROCESS);
+	ConnectPool<T> connect_pool(_connections_number_per_process);
 	int ret = -1;
 	while(!_stop)
 	{
 		int nfds = epoll_wait(_epollfd,evlist,MAX_EVENT_NUMBER,-1);
 		if((nfds<0) && (errno!=EINTR))
 		{
-			printf("Process %d RunChild:epoll failed!\n",my_pid);
+			log("Process %d RunChild:epoll failed!\n",my_pid);
 			continue;
 		}
 		int *expire_fd = nullptr;
@@ -339,19 +338,19 @@ void ProcessPool<T>::RunChild()
 				}
 				else if(tmp ==1)
 				{
-					if(_connect_number >=USER_PER_PROCESS)
+					if(_connect_number >=_connections_number_per_process)
 					{
 						continue;
 					}
 					int newfd = accept(_listenfd,NULL,0);
 					if(newfd<0)
 					{
-						printf("Process %d RunChilde:accept failed!\n",my_pid);
+						log("Process %d RunChilde:accept failed!\n",my_pid);
 						continue;
 					}
 					if(!AddFd(_epollfd,newfd))
 					{
-						printf("Process %d RunChilde:AddFd failed!\n",my_pid);
+						log("Process %d RunChilde:AddFd failed!\n",my_pid);
 						close(newfd);
 						continue;
 					}
@@ -362,7 +361,7 @@ void ProcessPool<T>::RunChild()
 					}
 					Timer &timer = connect_pool.TimerOfConnect(newfd);
 					timers.InsertTimer(timer);
-					printf("Add new fd:%d\n",newfd);
+					log("Add new fd:%d\n",newfd);
 					if(timers.size()==1)
 					{
 						struct itimerspec ts;
@@ -413,13 +412,13 @@ void ProcessPool<T>::RunChild()
 			else if(sockfd == time_fd)
 			{
 				expire_fd = timers.GetExpireAndSetNewTimer();
-				printf("Timer is expired!\n");
+				log("Timer is expired!\n");
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
 				ReturnCode code = connect_pool.Process(sockfd,READ);
 				uint32_t ev = EPOLLOUT;
-				printf("update timer!\n");
+				log("update timer!\n");
 				Timer &timer = connect_pool.TimerOfConnect(sockfd);
 				timer.AdjustTimer(CONNECT_KEEP_TIME);
 				timers.UpdateTimer(timer);
@@ -427,7 +426,7 @@ void ProcessPool<T>::RunChild()
 				{
 				case TOWRITE:
 					ModifyFd(_epollfd,sockfd,ev);
-					printf("read to write!\n");
+					log("read to write!\n");
 					break;
 				case TOCLOSE:
 					timers.DelTimer(timer);
@@ -443,17 +442,17 @@ void ProcessPool<T>::RunChild()
 			}
 			else if(evlist[i].events & EPOLLOUT)
 			{
-				printf("connection:%d have data to write!\n",sockfd);
+				log("connection:%d have data to write!\n",sockfd);
 				ReturnCode code = connect_pool.Process(sockfd,WRITE);
 				uint32_t ev= EPOLLIN;
 				switch(code)
 				{
 				case TOREAD:
 					ModifyFd(_epollfd,sockfd,ev);
-					printf("WRITE to READ\n");
+					log("WRITE to READ\n");
 					break;
 				case TOCLOSE:
-					printf("WRITE to CLOSE\n");
+					log("WRITE to CLOSE\n");
 					timers.DelTimer(connect_pool.TimerOfConnect(sockfd));
 					connect_pool.RecyleConn(sockfd);
 					RemoveFd(_epollfd,sockfd);
@@ -462,7 +461,7 @@ void ProcessPool<T>::RunChild()
 				case TOWRITE:
 				case CONTINUE:
 				default:
-					printf("CONTINUE!\n");
+					log("CONTINUE!\n");
 				}
 			}
 			else
@@ -478,7 +477,7 @@ void ProcessPool<T>::RunChild()
 				connect_pool.RecyleConn(expire_fd[i]);
 				RemoveFd(_epollfd,expire_fd[i]);
 				_connect_number--;
-				printf("Remove fd:%d\n",expire_fd[i]);
+				log("Remove fd:%d\n",expire_fd[i]);
 			}
 			struct itimerspec ts;
 			memset(&ts,0,sizeof(ts));
@@ -492,7 +491,7 @@ void ProcessPool<T>::RunChild()
 		}
 		if(old_connect_number!=_connect_number)
 		{
-			printf("Process:%d have connect number:%d\n",my_pid,_connect_number);
+			log("Process:%d have connect number:%d\n",my_pid,_connect_number);
 			send(pipefd_with_parent,&_connect_number,sizeof(_connect_number),0);
 		}
 

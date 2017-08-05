@@ -10,4 +10,4 @@ time_heap.o:time_heap.cpp time_heap.h
 	g++  -std=c++11 -g -c time_heap.cpp
 .PHONY:clean
 clean:
-	-rm HttpCodeTest http_conn.o time_heap.o common_functions.o connect_pool.o
+	-rm HttpCodeTest *.o

@@ -80,13 +80,13 @@ bool ConnectPool<Conn>::AddConnect(int connfd,int connect_keep_time)
 {
 	if(_connect_free.empty())
 	{
-		printf("ConnectPool::add new fd %d failed,because no more free connection!\n",connfd);
+		log("ConnectPool::add new fd %d failed,because no more free connection!\n",connfd);
 		return false;
 	}
 	Conn* tmp = *_connect_free.begin();
 	if(!tmp->Init(connfd,connect_keep_time))
 	{
-		printf("ConnectPool::add new fd %d failed,because connect init failed!\n",connfd);
+		log("ConnectPool::add new fd %d failed,because connect init failed!\n",connfd);
 		return false;
 	}
 	_connect_free.erase(tmp);
@@ -112,7 +112,7 @@ ReturnCode ConnectPool<Conn>::Process(int fd,OptType status)
 	ReturnCode ret;
 	if(_connect_using.count(fd)==0)
 	{
-		printf("ConnectPool::Process:no this fd %d in pool!\n",fd);
+		log("ConnectPool::Process:no this fd %d in pool!\n",fd);
 		return TOCLOSE;
 	}
 	else if(status == CLOSE)

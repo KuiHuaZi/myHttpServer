@@ -14,6 +14,7 @@
 #include<assert.h>
 #include<stdio.h>
 #include<string.h>
+#include"common_functions.h"
 Timer::	Timer(int delay,int fd)
 {
 	clock_gettime(CLOCK_MONOTONIC,&_expire_struct);
@@ -106,9 +107,9 @@ void TimerHeap::UpdateTimer(Timer &tmp)
 	{
 		return;
 	}
-	printf("Before Update location: %d \n",t->_location_in_heap);
+	log("Before Update location: %d \n",t->_location_in_heap);
 	sink(t->_location_in_heap);
-	printf("after Update location: %d \n",t->_location_in_heap);
+	log("after Update location: %d \n",t->_location_in_heap);
 	return;
 
 }
@@ -180,7 +181,7 @@ void TimerHeap::PrintHeap()
 {
 	for(int i = 1; i <= _size;++i)
 	{
-		printf("heap[%d]: %ld  ",i,_heap[i]->Expire());
+		log("heap[%d]: %ld  ",i,_heap[i]->Expire());
 	}
 }
 void TimerHeap::swim(int index)
@@ -247,7 +248,7 @@ void cb_func()
 {
 	struct timespec cur;
 	clock_gettime(CLOCK_MONOTONIC,&cur);
-	printf("Time now: %ld\n",cur.tv_sec);
+	log("Time now: %ld\n",cur.tv_sec);
 }
 static void Test()
 {
@@ -271,18 +272,18 @@ static void Test()
 		assert(ret == 0);
 		while(true)
 		{
-			printf("Begin epoll_wait!\n");
+			log("Begin epoll_wait!\n");
 			int nfds = epoll_wait(epoll_fd,evlist,2,-1);
 			if(nfds < 0 && errno != EINTR)
 			{
-				printf("epoll_wait failed \n");
+				log("epoll_wait failed \n");
 				return ;
 			}
 			for(int i = 0; i < nfds; ++i)
 			{
 				if(evlist[i].data.fd == 0)
 				{
-					printf("read input!\n");
+					log("read input!\n");
 					char tmp;
 					std::cin>>tmp;
 					while(tmp!='e')
@@ -315,7 +316,7 @@ static void Test()
 							if(index<=heap.size())
 							{
 								heap.PrintHeap();
-								printf("\n");
+								log("\n");
 								heap._heap[index]->AdjustTimer(10);
 								heap.UpdateTimer(*heap._heap[index]);
 								heap.PrintHeap();
@@ -324,7 +325,7 @@ static void Test()
 						case'n':
 							struct timespec cur;
 							clock_gettime(CLOCK_MONOTONIC,&cur);
-							printf("Time now: %ld\n",cur.tv_sec);
+							log("Time now: %ld\n",cur.tv_sec);
 							break;
 						case '-':
 							break;
@@ -338,7 +339,7 @@ static void Test()
 				}
 				else if(evlist[i].data.fd ==time_fd)
 				{
-					printf("Timer trick!\n");
+					log("Timer trick!\n");
 					heap.Trick();
 					struct itimerspec ts;
 					memset(&ts,0,sizeof(ts));

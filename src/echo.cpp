@@ -46,7 +46,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 		_recv_buffer = new char[recv_size+1];
 		if(!_recv_buffer)
 		{
-			printf("Echo::Init() new failed!\n");
+			log("Echo::Init() new failed!\n");
 			return false;
 		}
 		_recv_buffer_size = recv_size;
@@ -55,7 +55,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 		{
 			delete[]_recv_buffer;
 			_recv_buffer = nullptr;
-			printf("Echo::Init() new failed!\n");
+			log("Echo::Init() new failed!\n");
 			return false;
 		}
 		*/
@@ -67,7 +67,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 			_recv_buffer = nullptr;
 			//delete[]_send_buffer;
 			//_send_buffer = nullptr;
-			printf("Echo::Init() new failed!\n");
+			log("Echo::Init() new failed!\n");
 			return false;
 		}
 		_buffer_allocated = true;
@@ -132,15 +132,15 @@ ReturnCode Echo::readLine()
 	int num_read = read(_connfd,_recv_buffer+_read_index,buffer_left);
 	if(num_read == 0&&_check_index==_read_index)
 	{
-		printf("Echo::readLine client closed!\n");
+		log("Echo::readLine client closed!\n");
 		return TOCLOSE;
 	}
 	else if(num_read<0)
 	{
 		if((errno!=EINTR)&&(errno!=EAGAIN))
 		{
-			printf("Echo::readLine read failed!\n");
-			printf("errno %d :\t\t%s\n",errno,strerror(errno));
+			log("Echo::readLine read failed!\n");
+			log("errno %d :\t\t%s\n",errno,strerror(errno));
 			return TOCLOSE;
 		}
 		else
@@ -174,14 +174,14 @@ ReturnCode Echo::writeLine()
 	int num_write = write(_connfd,_recv_buffer+_send_index,num_to_write);
 	if(num_write == 0)
 	{
-		printf("Echo::writeLine write failed!\n");
+		log("Echo::writeLine write failed!\n");
 		return TOCLOSE;
 	}
 	else if(num_write < 0)
 	{
 		if((errno!=EINTR)&&(errno!=EAGAIN))
 		{
-			printf("Echo::readLine read failed!]n");
+			log("Echo::readLine read failed!]n");
 			return TOCLOSE;
 		}
 		else
@@ -225,7 +225,7 @@ int main()
 	{
 		int newfd = accept(listenfd,nullptr,0);
 		assert(newfd!=-1);
-		printf("accept new client!\n");
+		log("accept new client!\n");
 		int flag = fcntl(newfd,F_GETFL);
 		assert(flag!=-1);
 		flag = flag | O_NONBLOCK;

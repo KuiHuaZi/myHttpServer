@@ -13,16 +13,19 @@
 #include<signal.h>
 #include<sys/wait.h>
 #include<sys/stat.h>
+#include"http_conn.h"
+#include"process_pool.h"
 int main(int argc,char* argv[])
 {
-	if(argc<=2)
+	if(argc<=4)
 	{
-		printf("usage: %s ip_address port_number\n",basename(argv[0]));
+		log("usage: %s ip_address port_number process_number connect_number_per_process\n",basename(argv[0]));
 		return 1;
 	}
 	const char*ip = argv[1];
 	int port = atoi(argv[2]);
-
+	int process_number = atoi(argv[3]);
+	int connect_number_per_process = atoi(argv[4]);
 	int listenfd = socket(AF_INET,SOCK_STREAM,0);
 	assert(listenfd>=0);
 	int ret = 0;
@@ -36,7 +39,9 @@ int main(int argc,char* argv[])
 	ret = listen(listenfd,5);
 	assert(ret==0);
 	//todo:use process_poll class creat process
-	
+	ProcessPool<HttpConn>&pool = ProcessPool<HttpConn>::instance(listenfd,process_number,connect_number_per_process);
+	pool.Run();
+
 	close(listenfd);
 	return 0;
 }
