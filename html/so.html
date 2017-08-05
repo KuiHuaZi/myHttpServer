@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <title>iqiyi搜索</title>
+        <meta charset="UTF-8">
+        <meta name="referrer" content="never">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <link rel="shortcut icon" href="images/site.ico" type="image/x-icon"/>
+        <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" media="screen" />
+        <link rel="stylesheet" href="stylesheet/so.css" media="screen" />
+        <link rel="stylesheet" href="stylesheet/login.css" media="screen" />
+    </head>
+    <body>
+        <div id="app">
+        	<div class="backTop">
+        		<a href="#theTop" target="_self" class="fa fa-arrow-circle-o-up" aria-hidden="true"></a>
+        		<p>顶部</p>
+        		<a href="opinionbox.html" target="_blank" class="fa fa-envelope-o" aria-hidden="true"></a>
+        		<p>反馈</p>
+    		</div>
+
+            <div class="mainbody">
+        		<a name="theTop" id="theTop"></a>
+				<div id="topnav" class="row">
+                    <div id="logo" class="col-md-3 col-xs-12 col-sm-2">
+                        <a href="index.html" target="_blank"><img src="images/log.png"></a>
+                    </div>
+                    <div id="search" class="col-md-6 col-xs-12 col-sm-5">
+                        <button type="button" class="btn btn-default btn-sm">
+                            <a href="top.html" target="_blank" class="glyphicon glyphicon-stats" aria-hidden="true">&thinsp;排行榜</a>
+                        </button>
+                        <form action="so.html" method="GET"  class="searchinputdiv" id="topsearchinputdiv">
+                            <input type="text" id="searchinput" placeholder="推荐词" name="key" value="奔跑吧兄弟" autocomplete="off">
+                            <span class="glyphicon glyphicon glyphicon-search" id="mainSearch" aria-hidden="true"></span>
+                            <div class="searchRecommend" style="display:none;">
+                                <h4>热门搜索</h4>
+                                <ul class="searchRecommendUl">
+                                    <li class="searchRecommendli" v-for="video in searchList">
+                                        <a :href="video.soHref">{{video.short_title}}</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="topinfo" class="col-md-3 col-xs-12 col-sm-5">
+                        <a id="signup" href="javascript:void(0)" class="toplink">注册</a>
+                        <a id="login" href="javascript:void(0)" class="toplink">登录</a>
+                        <a href="javascript:void(0)" class="toplink login-user" style="display: none"></a>
+                        <a href="special.html" class="toplink" target="_blank">专题</a>
+                        <a href="speechRecognition.html" class="toplink" target="_blank">语音识别</a>
+                    </div>
+                </div>
+
+				<div class="content-container">
+
+                        <div class="error hide">
+                            <h2>网络错误！请刷新或稍后访问。</h2>
+                            <button><a href="">点我刷新</a></button>
+                        </div>
+
+                        <div id="navLoad" class="hide">
+                            <div id="spinNavDiv" class="spinContainer"></div>
+                            <span id="spinNavText" class="spinContainer">视频正在加载中...</span>
+                        </div>
+
+            		    <!--推荐内容显示-->
+            		    <div class="recommend-container hide" >
+
+                            <div class="result-info">
+                                <p class="result-number">搜索" <em class="keyword">{{keywords}}</em>  ",共找到 <em class="keyword">{{recommend.length}}</em> 个相关视频</p>
+                                <button type="button" class="btn btn-default btn-sm glyphicon glyphicon-stats order" aria-hidden="true" v-on:click="sortByCount">
+                                    <a>&thinsp;播放量从高到低</a>
+                                </button>
+                            </div>
+
+                    		<div class="recommend-item row" v-for="video in recommendAfterOrder">
+                        		<a :href="video.play" class="video-image col-md-3 col-sm-3 col-xs-4"><img v-bind:src="video.img"></a>
+								<a :href="video.play" class="h1 col-md-6 col-sm-6 col-xs-6">{{video.short_title}}</a>
+                        		<span class="recommend-item-info col-md-3 col-sm-3 col-xs-5 h1">
+                            		<p class="video-info">播放量：{{video.play_count_text}}</p>
+                            		<p class="video-info" v-if="video.sns_score">评分：{{video.sns_score}}</p>
+                            		<p class="video-info">日期：{{video.date_format}}</p>
+                        		</span>
+                    		</div>
+            		    </div>
+
+                    <div class="footer">
+                        <div class="footmenu">
+                            <a class="footmenu-item"href="http://www.iqiyi.com/common/aboutus.html" title="公司介绍" rseat="公司介绍" target="_blank">公司介绍</a>
+                            <a href="http://www.iqiyi.com/common/news.html" title="新闻动态" rseat="新闻动态" target="_blank">新闻动态</a>
+                            <a href="http://www.iqiyi.com/common/contactus.html" title="联系方式" rseat="联系方式" target="_blank">联系方式</a>
+                            <a href="http://zhaopin.iqiyi.com"  title="招聘英才" rseat="招聘英才" target="_blank">招聘英才</a>
+                            <a href="http://labs.iqiyi.com"  title="爱奇艺实验室" rseat="爱奇艺实验室" target="_blank">爱奇艺实验室</a>
+                            <a href="http://open.iqiyi.com/"  title="开放平台" rseat="开放平台" target="_blank">开放平台</a>
+                            <a href="http://www.iqiyi.com/common/rz.html"  title="爱奇艺号认证" rseat="爱奇艺号认证" target="_blank">爱奇艺号认证</a>
+                            <a href="http://www.iqiyi.com/zuozhe.html"  title="爱奇艺作者中心" rseat="爱奇艺作者中心" target="_blank">爱奇艺作者中心</a>
+                            <a href="http://help.iqiyi.com/"  title="帮助中心" rseat="帮助中心" target="_blank">帮助中心</a>
+                            <a href="http://www.iqiyi.com/common/copyright.html?entry=iqiyi"  rseat="侵权投诉" title="侵权投诉" target="_blank">侵权投诉</a>
+                            <a href="http://www.iqiyi.com/common/20100420/n4813.html" title="AboutUs" rseat="About Us" target="_blank">About Us</a>
+                        </div>
+                        <p class="fEn">Copyright © 2017 <a href="http://www.iqiyi.com" title="爱奇艺" rseat="爱奇艺" target="_blank">爱奇艺</a> All Rights Reserved</p>
+                    </div>
+            	</div>
+
+                <div id="login">
+                    <login></login>
+                </div>
+
+			</div>
+        </div>
+        <script src="static/js/jquery.min.js"></script>
+        <script src="static/js/spin.min.js"></script>
+        <script src="https://cdn.wilddog.com/js/client/current/wilddog.js" ></script>
+        <script src="static/js/vue.js"></script>
+        <script src="javascript/so.js"></script>
+        <script src="component/loginComponent.js"></script>
+        <script src="javascript/login.js"></script>
+    </body>
+</html>
+

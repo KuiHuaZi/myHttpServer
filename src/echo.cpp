@@ -15,7 +15,7 @@ Echo::Echo()
 	_buffer_allocated = false;
 	_recv_buffer = nullptr;
 	_recv_buffer_size = 0;
-	_send_buffer = nullptr;
+	//_send_buffer = nullptr;
 	_send_buffer_size = 0;
 	_status = CLOSE;
 	_timer = nullptr;
@@ -28,7 +28,7 @@ Echo::~Echo()
 	if(_buffer_allocated)
 	{
 		delete[]_recv_buffer;
-		delete[]_send_buffer;
+		//delete[]_send_buffer;
 		delete _timer;
 	}
 	if(_status!=CLOSE)
@@ -50,7 +50,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 			return false;
 		}
 		_recv_buffer_size = recv_size;
-		_send_buffer = new char[send_size+1];
+	/*	_send_buffer = new char[send_size+1];
 		if(!_send_buffer)
 		{
 			delete[]_recv_buffer;
@@ -58,14 +58,15 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 			printf("Echo::Init() new failed!\n");
 			return false;
 		}
+		*/
 		_send_buffer_size = send_size;
 		_timer = new Timer(connect_keep_time,_connfd);
 		if(!_timer)
 		{
 			delete[]_recv_buffer;
 			_recv_buffer = nullptr;
-			delete[]_send_buffer;
-			_send_buffer = nullptr;
+			//delete[]_send_buffer;
+			//_send_buffer = nullptr;
 			printf("Echo::Init() new failed!\n");
 			return false;
 		}
@@ -73,9 +74,9 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 	}
 	else
 	{
-		_read_index = _check_index = _send_index = 0;
+		_read_index = _check_index = _send_index=0;
 		memset(_recv_buffer,0,recv_size+1);
-		memset(_send_buffer,0,send_size+1);
+		//memset(_send_buffer,0,send_size+1);
 		_timer->ResetTimer(connect_keep_time,_connfd);
 	}
 
@@ -129,7 +130,7 @@ ReturnCode Echo::readLine()
 		return TOWRITE;
 	}
 	int num_read = read(_connfd,_recv_buffer+_read_index,buffer_left);
-	if(num_read == 0)
+	if(num_read == 0&&_check_index==_read_index)
 	{
 		printf("Echo::readLine client closed!\n");
 		return TOCLOSE;
@@ -193,7 +194,10 @@ ReturnCode Echo::writeLine()
 	{
 		return CONTINUE;
 	}
-	_check_index = _send_index = _read_index = 0;
+	if(_check_index==_read_index)
+	{
+		_check_index = _send_index = _read_index = 0;
+	}
 	return TOREAD;
 
 }
@@ -216,6 +220,7 @@ int main()
 	assert(ret==0);
 	ret = listen(listenfd,5);
 	Echo test;
+	const int conneck_keep_time = 100;
 	while(true)
 	{
 		int newfd = accept(listenfd,nullptr,0);
@@ -227,7 +232,8 @@ int main()
 		int ret = fcntl(newfd,F_SETFL,flag);
 		assert(ret!=-1);
 		//return flag;
-		test.Init(newfd);
+
+		test.Init(newfd,conneck_keep_time);
 		ReturnCode code;
 		while(true)
 		{

@@ -27,7 +27,7 @@ private:
 	int _read_index;
 	int _check_index;
 	int _send_index;
-	char* _send_buffer;
+	//char* _send_buffer;
 	int _send_buffer_size;
 	bool _buffer_allocated;
 	Timer *_timer;

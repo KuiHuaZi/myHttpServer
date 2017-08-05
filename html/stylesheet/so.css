@@ -1,0 +1,310 @@
+body {
+    font-family: "Microsoft Yahei",Helvetica,"Lucida Grande",Arial,"Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif;
+    background-color: #f5f5f5;
+    color: #000;
+}
+a{
+    cursor: pointer;
+}
+#app{
+    background-size:100% 100%;
+    background-attachment:fixed;
+}
+#app .mainbody a:link,#app .mainbody a:visited,#app .mainbody a:hover,#app .mainbody a:active{
+     text-decoration: none;
+}
+#topinfo a:link{
+    color: #fff;
+}  
+#topinfo a:visited{
+    color: #fff;
+}                        
+#topinfo a:hover {
+    color: #77a610;
+}           
+#topinfo a:active {
+    color: #fff;
+}   
+.row {
+    margin: 0px;
+}
+/* 回到顶部与意见反馈 */
+.backTop{
+    position: fixed;
+    bottom: 40px;
+    right: 10px;
+    z-index: 999;
+    text-align: center;
+}
+.backTop a{
+    display: block;
+    border-radius: 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    text-align: center;
+    line-height: 40px;
+    text-decoration: none;
+    color: #000;
+}
+.backTop a.fa-envelope-o{
+    font-size: 30px;
+}
+.backTop a:hover{
+    color: #77a610;
+}
+.mainbody {
+    margin: 0 10%;
+    background-color: #f5f5f5;
+}
+#topnav {
+    height: 10%;
+    padding: 5px 0px;
+    background-color: #181818;
+    color: #fff;
+}
+#logo{
+	padding-left: 20px;
+}
+.toplink {
+    float: right;
+    display: inline-block;
+    height: 35px;
+    line-height: 35px;
+    margin: 0px 10px;
+    text-decoration: none;
+    color: #fff;
+    pointer-events:auto;
+}
+a.toplink:hover {
+    color: #77a610;
+}
+#search {
+    text-align: center;
+    margin-top: 5px;
+    display: inline-block;
+    margin-bottom: 2px;
+}
+.glyphicon {
+    color: #77a610;
+    font-size: 15px;
+}
+.glyphicon-search{
+    position: absolute;
+    right: 5px;
+    top:8px;
+    font-size: 20px;
+}
+.searchinputdiv{
+    display: inline-block;
+    position: relative;
+}
+#topsearchinputdiv{
+    width: 60%;
+}
+#searchinput {
+    display: inline-block;
+    height: 32px;
+    width: 100%;
+    border-radius: 5px;
+    padding-left: 5px;
+    border:1px solid #77a610;
+    color: #000;
+    outline: none;
+    font-size: 15px;
+}
+.searchRecommend{
+    position: absolute;
+    background-color: #f5f5f5;
+    width: 100%;
+    top: 31px;
+    z-index: 999;
+    border: 1px solid #77a610;
+    border-radius: 5px;
+    color: #000;
+    text-align: left;
+}
+.searchRecommendUl{
+    padding-left: 0px;
+    list-style: none;
+}
+.searchRecommendli{
+    cursor: pointer;
+    padding: 5px;
+    width: 100%;
+    overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+.searchRecommendli a{
+    color:#000;
+}
+.searchRecommendli a:hover{
+    text-decoration: none;
+    color:#77a610;
+}
+#topinfo,#search{
+    padding: 0px;
+}
+#topinfo{
+    padding-right: 8px;
+    pointer-events:none;
+}
+.error{
+	text-align:center;
+	color: #a94442;
+}
+.hide{
+    display: none;
+}
+/* 加载动画 */
+.spinContainer{
+    display: inline-block;
+    width: 48%;
+    vertical-align: center;
+}
+#navLoad{
+    margin: 10px;
+}
+#spinText{
+    text-align: left;
+}
+#spinNavDiv,#spinDiv{
+    position: relative;
+}
+.result-info{
+    margin:5% 0;
+    background-color: #dddddd;
+}
+.result-info p{
+    display:inline-block;
+}
+.result-number{
+    position:relative;
+    left:5%;
+}
+.order{
+    position:relative;
+    left:20%;
+}
+.order a{
+    color: #77a610;
+    text-align: center;
+}
+.order a:hover{
+    text-decoration: none;
+}
+.keyword {
+    color: #ff6c00;
+}
+.recommend-item{
+    height:auto;
+    margin-bottom: 5%;
+}
+.recommend-item .video-image{
+	position:relative;
+	left:3%;
+}
+.video-image img{
+    width: 120px;
+    height:160px;
+}
+ul li{
+    list-style-type: none;
+}
+.recommend-item-info{
+	margin-top:2%;
+	display:inline-block;
+}
+.h1{
+    color: #f15a24;
+    font-size: 1em;
+    font-style: normal;
+    font-weight: 500;
+	white-space: pre-wrap;
+    text-align: center;
+}
+.video-info{
+    color: #828282;
+}
+a.h1:hover{
+    text-decoration-line: none;
+    color:#77a610;
+}
+.footer{
+	text-align:center;
+	font-size:90%;
+	bottom: 0;
+	width: 100%;
+	padding:15px;
+	clear:right;
+    margin-top:40px;
+}
+.fEn {
+    margin-top:5px;
+    color: #999;
+    font-family: Arial;
+}
+.footmenu a {
+    background: url(../images/footerline1214.png) no-repeat left 3px;
+    padding: 0 8px 0 10px;
+    color: #999;
+}
+.fEn a{
+    color: #999;
+    font-family: Arial;
+}
+@media screen and (max-width: 1024px) {
+    .mainbody {
+        margin:0;
+    }
+    .recommend-container{
+        margin-left:2px;
+    }
+    #logo{
+        padding-left: 5px;
+    }
+    #topsearchinputdiv{
+        width: 72%;
+    }
+}
+@media screen and (max-width: 767px) {
+    .video-image img {
+        width: 80px;
+        height:100px;
+    }
+    .h1{
+        text-align: left;
+        margin-top:0px;
+    }
+    #topnav{
+        position: relative;
+    }
+    #topinfo{
+        position: absolute;
+        top: 5px;
+        left: 0px;
+        padding: 0px;
+    }
+    .backTop{
+        bottom: 5px;
+    }
+    .backTop a{
+        color: rgba(0,0,0,0.5);
+    }
+}
+@media screen and (max-width: 425px) {
+    .result-number {
+        position: static; 
+    }
+    .order {
+        position: relative;
+        left: 0;
+    }
+    .recommend-item{
+        border-bottom: 1px dashed #666;
+    }
+    .h1{
+        margin-left: 10%;
+    }
+}

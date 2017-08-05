@@ -1,0 +1,125 @@
+/*登录背景*/
+#login-back{
+    display: none;
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    height: 8440px;
+    opacity: 0.5;
+    z-index: 4845;
+    background: #000;
+}
+#topinfo a.login-user:link{
+    color: #f15a24;
+    font-size: 1em;
+    font-style: italic;
+    font-weight: 500;
+}
+/*登录框*/
+.title h4{
+    margin-top:25px;
+    margin-bottom: 25px;
+}
+#login-container,#signup-container{
+    width: 432px;
+    height: 300px;
+    left: 35%;
+    top: 20%;
+    position: fixed;
+    z-index: 4850;
+    display: none;
+    border-radius: 3px;
+    overflow: hidden;
+    background-color: #fff;
+}
+.title,.infoTologin,.infoTosign{
+    text-align: center;
+}
+.infoTologin{
+    display: none;
+}
+.infoTologin,.infoTosign{
+    padding: 10px;
+    font-size: 15px;
+}
+.fa-check{
+    color: #77a610;
+}
+#singup-occupy,#login-error,#psword-error{
+    color: red;
+    visibility: hidden;
+    margin-top: -10px;
+}
+.login-btn,.signup-btn{
+    display: block;
+    cursor: pointer;
+    text-align: center;
+    margin-left: 20%;
+    width: 60%;
+    color: #fff;
+    font-size: 14px;
+    line-height: 38px;
+    height: 38px;
+    border-radius: 3px;
+    background-color: #77a610;
+}
+.input-info,.user-info{
+    width: 80%;
+    outline: none;
+    text-align: center;
+    margin-left: 5%;
+    margin-bottom: 5%;
+    border-radius: 5px;
+}
+.name-info{
+    margin-bottom: 15px;
+}
+.input-info{
+    border: 1px solid #888;
+    height: 30px;
+}
+a#login-out{
+    cursor: pointer;
+}
+.close-login,.close-signup,.close-addsheet{
+    position: absolute;
+    display: block;
+    width: 12px;
+    height: 12px;
+    margin: 10px;
+    right: 2px;
+    top: 2px;
+    background: url(../images/close.png) no-repeat;
+}
+#myinfo{
+    width: 332px;
+    height: 80px;
+    right: 0;
+    top: 50px;
+    position: absolute;
+    z-index: 4850;
+    display: none;
+    overflow: hidden;
+    background-color: #fff;
+    border-radius: 3px;
+    border:1px solid #77a610;
+}
+#myinfo a{
+    color: #000;
+    display: inline-block;
+    margin: 10%;
+}
+#myinfo .fa-user-o{
+    color: #77a610;
+}
+#myinfo .fa-sign-out{
+    color: #FF6600;
+}
+@media screen and (max-width: 426px) {
+    #login-container,#signup-container{
+        width: 300px;
+        left: 5%;
+        height: 300px;
+    }
+}

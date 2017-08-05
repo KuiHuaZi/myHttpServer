@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="never">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>语音识别</title>
+    <link rel="shortcut icon" href="images/site.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" media="screen" />
+<style type="text/css">
+body {
+    font-family: "Microsoft Yahei",Helvetica,"Lucida Grande",Arial,"Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif;
+    background-color: #282828;
+    color: #F0F0F0;
+    font-size: 25px;
+}
+input{
+    outline: none;
+    color:#282828;
+    width: 498px;
+    height: 42px;
+    font-size: 25px;
+    padding: 0px 5px;
+    border:1px solid #77a610;
+    border-radius: 10px;
+    background-color: #F0F0F0;
+}
+main{
+    width: 500px;
+    margin: 0 auto;
+    margin-top: 100px;
+}
+#searchform{
+    position: relative;
+}
+.fa-microphone{
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius:20px;
+    background-color: #F0F0F0;
+    position: absolute;
+    bottom: 2px;
+    right: 0px;
+    color: #77a610;
+    cursor: pointer;
+}
+@media screen and (max-width: 500px) {
+    input{
+        width: 98%;
+    }
+    main{
+        width: 98%;
+    }
+}
+</style>
+</head>
+<body>
+    <main>
+        <form action="so.html" method="GET" target="_blank" id="searchform">
+            请点击麦克风开始说话：<input type="text" name="key" autocomplete="off" id="searchinput">
+            <i class="fa fa-microphone fa-lg" aria-hidden="true" id="microphone"></i>
+        </form>
+    </main>
+<script src="static/js/jquery.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+    var sr = new webkitSpeechRecognition();
+    sr.continuous = true;
+    var so = "搜索";
+    var top = "排行榜";
+    var iqiyi = "爱奇艺";
+    sr.onresult = function (evt) {
+        var searchText = evt.results[0][0].transcript;
+        console.log(searchText);
+        if(searchText.indexOf(so) > -1){
+            searchText = searchText.substring(searchText.indexOf(so)+2);
+        }else if(searchText.indexOf(top) > -1){
+            $("#searchinput").val("");
+            $("#searchform").attr("action","top.html");
+        }else if(searchText.indexOf(iqiyi) > -1){
+            $("#searchinput").val("");
+            $("#searchform").attr("action","index.html");
+        }
+        $("#searchinput").val(searchText);
+        $("#searchform").submit();
+        /*console.log(evt.results[0][0].transcript,evt.results[0][0].confidence);*/
+    }
+    var flag = true;
+    $("#microphone").click(function(){
+        if(flag == true){
+            sr.start();
+            $(".fa-microphone").css("background-color","rgba(204,0,0,0.5)");
+            flag = false;
+        }else{
+            sr.stop();
+            $(".fa-microphone").css("background-color","#f0f0f0");
+            flag = true;
+        }
+    });
+});
+</script>
+</body>
+</html>
+

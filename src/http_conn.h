@@ -1,26 +1,9 @@
 #ifndef HTTPCONNECTION_H
 #define HTTPCONNECTION_H
-
-#include <unistd.h>
-#include <signal.h>
-#include <sys/types.h>
-#include <sys/epoll.h>
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <assert.h>
-#include <sys/stat.h>
-#include <string.h>
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/mman.h>
-#include <stdarg.h>
-#include <errno.h>
 //#include "locker.h"
-
-class http_conn
+#include"common_functions.h"
+class Timer;
+class HttpConn
 {
 public:
     static const int FILENAME_LEN = 200;
@@ -32,16 +15,17 @@ public:
     enum LINE_STATUS { LINE_OK = 0, LINE_BAD, LINE_OPEN };
 
 public:
-    http_conn(){}
-    ~http_conn(){}
+    HttpConn();
+    ~HttpConn();
 
 public:
-    void init( int sockfd, const sockaddr_in& addr );
+    bool Init( int sockfd,int connect_keep_time,int recv_size=READ_BUFFER_SIZE,int send_size=WRITE_BUFFER_SIZE/*,const sockaddr_in& addr */);
     void close_conn( bool real_close = true );
-    void process();
-    bool read();
-    bool write();
-
+    ReturnCode Process(OptType option);
+    Timer&GetTimer()
+    {
+    	return *_timer;
+    }
 private:
     void init();
     HTTP_CODE process_read();
@@ -51,8 +35,11 @@ private:
     HTTP_CODE parse_headers( char* text );
     HTTP_CODE parse_content( char* text );
     HTTP_CODE do_request();
-    char* get_line() { return m_read_buf + m_start_line; }
+    char* get_line() { return _read_buf + _start_line; }
     LINE_STATUS parse_line();
+
+    bool read();
+    ReturnCode write();
 
     void unmap();
     bool add_response( const char* format, ... );
@@ -64,34 +51,40 @@ private:
     bool add_blank_line();
 
 public:
-    static int m_epollfd;
-    static int m_user_count;
+    //static int m_epollfd;
+   // static int m_user_count;
 
 private:
-    int m_sockfd;
-    sockaddr_in m_address;
+    int _sockfd;
+    //sockaddr_in _address;
 
-    char m_read_buf[ READ_BUFFER_SIZE ];
-    int m_read_idx;
-    int m_checked_idx;
-    int m_start_line;
-    char m_write_buf[ WRITE_BUFFER_SIZE ];
-    int m_write_idx;
+    char *_read_buf;
+    int _read_buf_size;
+    int _read_idx;
+    int _checked_idx;
+    int _start_line;
+    char *_write_buf;
+    int _write_buf_size;
+    int _write_idx;
 
-    CHECK_STATE m_check_state;
-    METHOD m_method;
+    CHECK_STATE _check_state;
+    METHOD _method;
+    //HTTP_CODE _request_result;
 
-    char m_real_file[ FILENAME_LEN ];
-    char* m_url;
-    char* m_version;
-    char* m_host;
-    int m_content_length;
-    bool m_linger;
+    char _real_file[ FILENAME_LEN ];
+    char* _url;
+    char* _version;
+    char* _host;
+    int _content_length;
+    bool _linger;
 
-    char* m_file_address;
-    struct stat m_file_stat;
-    struct iovec m_iv[2];
-    int m_iv_count;
+    char* _file_address;
+    struct stat _file_stat;
+    struct iovec _iv[2];
+    int _iv_count;
+    bool _allocated;
+    OptType _status;
+    Timer *_timer;
 };
 
 #endif

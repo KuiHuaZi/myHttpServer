@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="never">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>iqiyi剧/影单</title>
+    <link rel="shortcut icon" href="images/site.ico" type="image/x-icon"/>
+    <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="http://cdn.bootcss.com/font-awesome/4.7.0/css/font-awesome.min.css" media="screen" />
+    <link rel="stylesheet" href="stylesheet/personalCenter.css">
+    <link rel="stylesheet" href="stylesheet/login.css" media="screen" />
+</head>
+<body>
+<div id="app">
+    <!-- 主体部分 -->
+    <div class="mainbody">
+        <!-- 顶部栏-->
+        <div id="topnav" class="row">
+            <div id="logo" class="col-md-3 col-xs-12 col-sm-2">
+                <a href="index.html">
+                    <img src="images/log.png">
+                </a>
+            </div>
+            <div id="search" class="col-md-6 col-xs-12 col-sm-5">
+                <button type="button" class="btn btn-default btn-sm rank">
+                    <a href="top.html" target="_blank" class="glyphicon glyphicon-stats" aria-hidden="true" id="rank-link">&thinsp;排行榜</a>
+                </button>
+                <form action="so.html" method="GET" target="_blank" class="searchinputdiv" id="topsearchinputdiv">
+                    <input type="text" id="searchinput" placeholder="奔跑吧兄弟" name="key" autocomplete="off">
+                    <span class="glyphicon glyphicon glyphicon-search" id="mainSearch" aria-hidden="true"></span>
+                </form>
+            </div>
+            <div id="topinfo" class="col-md-3 col-xs-12 col-sm-5">
+                <a id="signup" href="javascript:void(0)" class="toplink">注册</a>
+                <a id="login" href="javascript:void(0)" class="toplink">登录</a>
+                <a href="javascript:void(0)" class="toplink login-user" style="display: none"></a>
+                <a href="special.html" class="toplink" target="_blank">专题</a>
+                <a href="speechRecognition.html" class="toplink" target="_blank">语音识别</a>
+            </div>
+        </div>
+        <!-- 内容部分 -->
+        <div id="content">
+            <div id="content-creat-sheet" class="content-session">
+                <h3>
+                    <span id="sheetname" v-text="sheetname">剧/影单名称</span> (<span v-text="sheetNum"></span>)
+                </h3>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-3 col-xs-6" v-for="x in sheet">
+                            <div class="oneCollect" v-on:mouseenter="animateIcon($event);" v-on:mouseleave="stopAnimateIcon($event);">
+                                <a v-bind:href="getLink(x)" class="collectA">
+                                    <img v-bind:src="x.img" alt="最好的我们">
+                                    <div class="icondiv">
+                                        <span class="fa fa-film " aria-hidden="true"></span>
+                                    </div>
+                                </a>
+                                <p class="collectTitle">{{x.title}}</p>
+                                <span class="fa fa-trash" aria-hidden="true" v-on:click="removeSheetCollect(x);"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="not-login">
+            <h2>您还没有登录，请先登录哦~</h2>
+        </div>
+        <!-- footer部分 -->
+        <div class="footer">
+                <div class="footmenu">
+                    <a class="footmenu-item" href="http://www.iqiyi.com/common/aboutus.html" title="公司介绍" rseat="公司介绍" target="_blank">公司介绍</a>
+                    <a href="http://www.iqiyi.com/common/news.html" title="新闻动态" rseat="新闻动态" target="_blank">新闻动态</a>
+                    <a href="http://www.iqiyi.com/common/contactus.html" title="联系方式" rseat="联系方式" target="_blank">联系方式</a>
+                    <a href="http://zhaopin.iqiyi.com"  title="招聘英才" rseat="招聘英才" target="_blank">招聘英才</a>
+                    <a href="http://labs.iqiyi.com"  title="爱奇艺实验室" rseat="爱奇艺实验室" target="_blank">爱奇艺实验室</a>
+                    <a href="http://open.iqiyi.com/"  title="开放平台" rseat="开放平台" target="_blank">开放平台</a>
+                    <a href="http://www.iqiyi.com/common/rz.html"  title="爱奇艺号认证" rseat="爱奇艺号认证" target="_blank">爱奇艺号认证</a>
+                    <a href="http://www.iqiyi.com/zuozhe.html"  title="爱奇艺作者中心" rseat="爱奇艺作者中心" target="_blank">爱奇艺作者中心</a>
+                    <a href="http://help.iqiyi.com/"  title="帮助中心" rseat="帮助中心" target="_blank">帮助中心</a>
+                    <a href="http://www.iqiyi.com/common/copyright.html?entry=iqiyi"  rseat="侵权投诉" title="侵权投诉" target="_blank">侵权投诉</a>
+                    <a href="http://www.iqiyi.com/common/20100420/n4813.html" title="AboutUs" rseat="About Us" target="_blank">About Us</a>
+                </div>
+                <p class="fEn">Copyright © 2017 <a href="http://www.iqiyi.com" title="爱奇艺" rseat="爱奇艺" target="_blank">爱奇艺</a> All Rights Reserved</p>
+        </div>
+    </div>
+    <div id="login">
+        <login></login>
+    </div>
+</div>
+<script src="static/js/jquery.min.js"></script>
+<script src="static/js/vue.js"></script>
+<script src="https://cdn.wilddog.com/js/client/current/wilddog.js" ></script>
+<script src="component/loginComponent.js"></script>
+<script src="javascript/login.js"></script>
+<script src="javascript/personalCenter.js"></script>
+<script src="javascript/mvSheetApp.js"></script>
+</body>
+</html>
+

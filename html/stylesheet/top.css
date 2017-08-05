@@ -1,0 +1,381 @@
+body {
+    font-family: "Microsoft Yahei",Helvetica,"Lucida Grande",Arial,"Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif;
+    background-color: #f5f5f5;
+    color: #000;
+}
+a{
+    cursor: pointer;
+}
+#app{
+    background-size:100% 100%;
+    background-attachment:fixed;
+}
+#app .mainbody a:link,#app .mainbody a:visited,#app .mainbody a:hover,#app .mainbody a:active{
+     text-decoration: none;
+}
+#topinfo a:link{
+    color: #fff;
+}  
+#topinfo a:visited{
+    color: #fff;
+}                        
+#topinfo a:hover {
+    color: #77a610;
+}           
+#topinfo a:active {
+    color: #fff;
+}   
+/* 回到顶部与意见反馈 */
+.backTop{
+    position: fixed;
+    bottom: 40px;
+    right: 10px;
+    z-index: 999;
+    text-align: center;
+}
+.backTop a{
+    display: block;
+    border-radius: 40px;
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    text-align: center;
+    line-height: 40px;
+    text-decoration: none;
+    color: #000;
+}
+.backTop a.fa-envelope-o{
+    font-size: 30px;
+}
+.backTop a:hover{
+    color: #77a610;
+}
+.mainbody {
+    margin: 0 10%;
+    background-color: #fefefe;
+}
+.row{
+    margin:0;
+}
+#topnav {
+    height: 10%;
+    padding: 5px 0px;
+    background-color: #181818;
+    color: #fff;
+}
+#logo{
+    padding-left:20px;
+}
+.toplink {
+    float: right;
+    display: inline-block;
+    height: 35px;
+    line-height: 35px;
+    margin: 0px 10px;
+    text-decoration: none;
+    color: #fff;
+    pointer-events:auto;
+}
+a.toplink:hover {
+    color: #77a610;
+}
+#search {
+    text-align: center;
+    margin-top: 5px;
+    display: inline-block;
+    margin-bottom: 2px;
+}
+.glyphicon {
+    color: #77a610;
+    font-size: 15px;
+}
+.glyphicon-search{
+    position: absolute;
+    right: 5px;
+    top:8px;
+    font-size: 20px;
+}
+.searchinputdiv{
+    display: inline-block;
+    position: relative;
+}
+#topsearchinputdiv{
+    width: 60%;
+}
+#searchinput {
+    display: inline-block;
+    height: 32px;
+    width: 100%;
+    border-radius: 5px;
+    padding-left: 5px;
+    border:1px solid #77a610;
+    color: #000;
+    outline: none;
+    font-size: 15px;
+}
+.searchRecommend{
+    position: absolute;
+    background-color: #f5f5f5;
+    width: 100%;
+    top: 31px;
+    z-index: 999;
+    border: 1px solid #77a610;
+    border-radius: 5px;
+    color: #000;
+    text-align: left;
+}
+.searchRecommendUl{
+    padding-left: 0px;
+    list-style: none;
+}
+.searchRecommendli{
+    cursor: pointer;
+    padding: 5px;
+    width: 100%;
+    overflow: hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+.searchRecommendli a{
+    color:#000;
+}
+.searchRecommendli a:hover{
+    text-decoration: none;
+    color:#77a610;
+}
+#topinfo,#search{
+    padding: 0px;
+}
+#topinfo{
+    padding-right: 8px;
+    pointer-events:none;
+}
+.top-banner {
+    width: 100%;
+    height: 150px;
+    background: url(../images/top-banner.png) no-repeat center 0;
+    background-size:100% 100%;
+    /*margin-bottom: 30px;*/
+}
+.error{
+    text-align:center;
+    color: #a94442;
+}
+.top-container{
+    background-color:#fefefe;
+    /*margin:0 200px;*/
+}
+.top-navbar{
+    margin-left:25%;
+}
+.top-navbar li{
+    margin-right:5%;
+}
+.top-navbar li a{
+    color:#888;
+    font-size:1.2em;
+}
+.nav #topall{
+    border-right: 1px solid #888;
+    width:5px;
+    height: 50px;
+}
+.top-navbar .nav-pills>li.active>a, .top-navbar .nav-pills>li.active>a:focus, .top-navbar .nav-pills>li.active>a:hover{
+    color: #fff;
+    background-color: #77a610;
+}
+
+.top-primary{
+    padding:0 5%;
+}
+.top-detail{
+    text-align: center;
+    margin-bottom: 10px;
+    padding:0 5%;
+}
+.top-title a{
+    font-size: 1em;
+    line-height: 55px;
+    height: 55px;
+    color: #666;
+}
+.top-detail ol{
+    counter-reset: li; /* 创建一个计数器 */
+    list-style: none; /* 清除列表默认的编码*/
+    *list-style: decimal; /* 让IE6/7具有默认的编码 */
+    font: 15px 'trebuchet MS', 'lucida sans';
+    text-shadow: 0 1px 0 rgba(255,255,255,.5);
+    padding:0;
+}
+.rounded-list a {
+    position: relative;
+    display: block;
+    padding: 0.4em 0.4em 0.4em 2em;
+    *padding: 0.4em;/*for ie6/7*/
+    margin: 0.5em 0;
+    color: #444;
+    text-decoration: none;
+    border-radius: 0.3em;/*制作圆角*/
+}
+.rounded-list a:hover {
+        background: #eee;
+}
+.rounded-list a::before {
+    content: counter(li);
+    counter-increment: li;
+    position: absolute;
+    left: 0;
+    top: 50%;
+    margin-top: -1em;
+    background-color: #77a610;
+    color:#fff;
+    height: 2em;
+    width: 2em;
+    line-height: 1.4em;
+    border: 0.3em solid #fff;
+    text-align: center;
+    font-weight: bold;
+    border-radius: 2em;
+}
+.top-detail-item{
+    font-size: 16px;
+    line-height: 40px;
+    height: 40px;
+    color: #222;
+    border-bottom: 1px solid #f2f2f2;
+}
+.top-detail-item a:hover{
+    color:#77a610;
+}
+.video-name {
+    color: #222;
+    white-space: nowrap;
+    word-break: keep-all;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+a.top-more {
+    display: inline-block;
+    font-size: 14px;
+    line-height: 20px;
+    color: #666;
+    text-align: left;
+    border-bottom:1px solid #77a610;
+}
+a.top-more:hover {
+    text-decoration:none;
+    color:#77a610;
+}
+.top-partition{
+    width:100%;
+    padding-left:15%;
+}
+.h1{
+    color: #f15a24;
+    font-size: 1em;
+    font-style: normal;
+    font-weight: 500;
+    white-space: pre-wrap;
+    text-align: center;
+}
+a.h1:hover{
+    color:#77a610;
+}
+.item-info{
+    display:inline-block;
+    margin-top:2%;
+}
+.footer{
+    text-align:center;
+    font-size:90%;
+    bottom: 0;
+    width: 100%;
+    padding:15px;
+    clear:right;
+    margin-top:40px;
+}
+.fEn {
+    margin-top:5px;
+    color: #999;
+    font-family: Arial;
+}
+.footmenu a {
+    background: url(../images/footerline1214.png) no-repeat left 3px;
+    padding: 0 8px 0 10px;
+    color: #999;
+}
+.fEn a{
+    color: #999;
+    font-family: Arial;
+}
+@media screen and (max-width: 800px) {
+    .mainbody {
+        width: 100%;
+    }
+    .row{
+        margin: 0px;
+    }
+    .top-banner {
+        width: 100%;
+        height: 50px;
+        background: url(../images/top-banner.png) no-repeat center 0;
+        background-size:100% 100%;
+    }
+    .h1{
+        text-align: center;
+        margin-top:0px;
+    }
+    .top-channel-item{
+        border-bottom:1px dashed #888;
+    }
+}
+@media screen and (max-width: 1024px) {
+    .mainbody {
+        margin: 0px;
+    }
+    #logo{
+        padding-left: 5px;
+    }
+    #topsearchinputdiv{
+        width: 72%;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .video-image img {
+        width: 90px;
+        height:100px;
+    }
+    .h1{
+        text-align: left;
+        margin-top:0px;
+    }
+    .top-partition{
+        padding-left:0px;
+    }
+    #topnav{
+        position: relative;
+    }
+    #topinfo{
+        position: absolute;
+        top: 5px;
+        left: 0px;
+        padding: 0px;
+    }
+}
+@media screen and (max-width: 768px) {
+    .top-navbar {
+        margin-left: 15%;
+    }
+}
+@media screen and (max-width: 425px) {
+    .top-navbar {
+        margin-left: 0%;
+    }
+    .backTop{
+        bottom: 5px;
+    }
+    .backTop a{
+        color: rgba(0,0,0,0.5);
+    }
+}

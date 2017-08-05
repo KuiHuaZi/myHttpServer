@@ -5,7 +5,7 @@
  *      Author: amapola
  */
 
-#include"common_functions.h"
+
 #include<sys/epoll.h>
 #include<assert.h>
 #include<fcntl.h>
@@ -16,6 +16,7 @@
 #include<unistd.h>
 #include<stdlib.h>
 #include<string.h>
+#include"common_functions.h"
 bool AddFd(int epollfd,int fd)
 {
 	epoll_event event;
@@ -69,23 +70,22 @@ bool ModifyFd(int epollfd,int fd,uint32_t ev)
 	struct epoll_event event;
 	event.data.fd = fd;
 	event.events = ev;
-	//event.events = EPOLLOUT;
 	int ret = epoll_ctl(epollfd,EPOLL_CTL_MOD,fd,&event);
 	if(ret == -1)
 	{
 		if(errno==EINVAL)
 		{
-			printf("EINVAL errno:%d  %s",errno,strerror(errno));
+			printf("ModifyFd EINVAL errno:%d  %s",errno,strerror(errno));
 		}
 		else if(errno==EBADF)
 		{
-			printf("EBADF errno:%d  %s",errno,strerror(errno));
+			printf("ModifyFd EBADF errno:%d  %s",errno,strerror(errno));
 		}
 		else if(errno == ENOENT)
 		{
-			printf("ENOENT errno:%d  %s",errno,strerror(errno));
+			printf("ModifyFd ENOENT errno:%d  %s",errno,strerror(errno));
 		}
-		printf("modfd:epoll_ctl failed!\n");
+		printf("ModifyFd :epoll_ctl failed!\n");
 		return false;
 	}
 	return true;
@@ -99,4 +99,3 @@ int SetNonblocking(int fd)
 	assert(ret!=-1);
 	return flag;
 }
-

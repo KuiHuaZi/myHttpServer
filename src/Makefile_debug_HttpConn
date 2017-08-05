@@ -1,0 +1,13 @@
+HttpCodeTest:http_conn.o connect_pool.o common_functions.o time_heap.o
+	g++ -g -o HttpCodeTest http_conn.o connect_pool.o time_heap.o common_functions.o
+http_conn.o:http_conn.cpp http_conn.h time_heap.h connect_pool.h
+	g++ -DDEBUG -std=c++11 -g -c http_conn.cpp
+connect_pool.o:connect_pool.cpp connect_pool.h common_functions.h time_heap.h
+	g++ -std=c++11 -g -c connect_pool.cpp
+common_functions.o:common_functions.cpp common_functions.h
+	g++ -std=c++11 -g -c common_functions.cpp
+time_heap.o:time_heap.cpp time_heap.h
+	g++  -std=c++11 -g -c time_heap.cpp
+.PHONY:clean
+clean:
+	-rm HttpCodeTest http_conn.o time_heap.o common_functions.o connect_pool.o

@@ -1,0 +1,139 @@
+body {
+    font-family: "Microsoft Yahei",Helvetica,"Lucida Grande",Arial,"Hiragino Sans GB","WenQuanYi Micro Hei",sans-serif;
+    background-color: #f5f5f5;
+    color: #000;
+    margin-top: 0px;
+}
+#app{
+    position: relative;
+    background-image: url(../images/opinion.jpg);
+}
+.mainbody {
+    width: 800px;
+    margin: 0 auto;
+}
+/* 意见反馈表单部分 */
+#opinionForm{
+    background-color: #f5f5f5;
+}
+.formdiv p{
+    font-size: 15px;
+}
+.formdiv i{
+    color: rgb(18,131,108);
+}
+.headimg{
+    position: relative;
+    height: 440px;
+    background-image: url(../images/opinion1.jpg);
+    background-repeat:no-repeat;
+    background-size:100% 100%;
+}
+.logo{
+    position: absolute;
+    top: 5px;
+    left: 5px;
+}
+.headtitle{
+    text-align:center;
+    font-weight: bold;
+    padding-top: 30px;
+    font-size:34px;
+    color:#E6F6EB;
+}
+.formdiv{
+    margin: 10px 30px;
+}
+.category{
+    display: inline-block;
+    width: 24%;
+    font-weight: normal;
+    font-size: 15px;
+}
+hr{
+    border-top: 1px solid #CCC;
+    margin: 10px 0px;
+}
+textarea{
+    text-align: left;
+    width: 90%;
+}
+.related{
+    width: 90%;
+}
+a.submit{
+    display: block;
+    margin: 0 auto;
+    width: 70px;
+    color: #f5f5f5;
+    padding: 8px 20px;
+    font-weight:normal;
+    background:rgb(18,131,108);
+    border-radius: 3px;
+}
+a.submit:hover{
+    color: #f5f5f5;
+    text-decoration:none;
+    background:rgba(18,131,108,0.8);
+}
+.lastformdiv{
+    padding:20px;
+}
+.firstlevel{
+    font-weight: bold;
+    margin-top: 30px;
+}
+.br-theme-fontawesome-stars-o .br-widget .br-current-rating{
+    display: inline-block;
+}
+.br-theme-fontawesome-stars-o .br-widget a.br-active:after,.br-theme-fontawesome-stars-o .br-widget a.br-selected:after,.userplus .fa-plus{
+    color: rgb(18,131,108);
+}
+/*footer*/
+.footer{
+    text-align:center;
+    font-size:90%;
+    width: 100%;
+    padding:15px;
+    clear:right;
+    margin:0px;
+}
+.fEn {
+    margin-top:5px;
+    color: #999;
+    font-family: Arial;
+}
+.footmenu a {
+    background: url(../images/footerline1214.png) no-repeat left 3px;
+    padding: 0 8px 0 10px;
+    color: #999;
+}
+.fEn a{
+    color: #999;
+    font-family: Arial;
+}
+/* 媒体查询 */
+@media screen and (max-width: 800px) {
+    .mainbody {
+        width: 100%;
+    }
+    .headimg{
+        height: 300px;
+    }
+    .headtitle{
+        font-size: 30px;
+        padding-top: 10px;
+    }
+    .formdiv{
+        margin: 10px;
+    }
+}
+@media screen and (max-width: 420px) {
+    .headimg{
+        height: 200px;
+    }
+    .headtitle{
+        font-size: 20px;
+    }
+}
+
