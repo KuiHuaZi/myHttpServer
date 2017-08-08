@@ -26,7 +26,7 @@ const char* error_404_title = "Not Found";
 const char* error_404_form = "The requested file was not found on this server.\n";
 const char* error_500_title = "Internal Error";
 const char* error_500_form = "There was an unusual problem serving the requested file.\n";
-const char* doc_root = "/home/amapola/workspace/myHttpServer/html";
+const char* doc_root = "/var/www";
 /*void http_conn::close_conn( bool real_close )
 {
     if( real_close && ( m_sockfd != -1 ) )

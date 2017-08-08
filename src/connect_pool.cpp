@@ -37,7 +37,7 @@ int main()
 	uint32_t ev = EPOLLIN|EPOLLET;
 	ModifyFd(epoll_fd,time_fd,ev);
 	evlist[0].data.fd = 0;//input
-	evlist[0].events = EPOLLIN | EPOLLET;
+	evlist[0].events = EPOLLIN;
 	ret = epoll_ctl(epoll_fd,EPOLL_CTL_ADD,0,&evlist[0]);
 	assert(ret == 0);
 	ReturnCode code;

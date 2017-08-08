@@ -9,7 +9,6 @@
 #define SRC_CONNECT_POOL_H_
 #include<map>
 #include<set>
-#include<vector>
 #include<assert.h>
 #include<sys/epoll.h>
 #include<sys/socket.h>
@@ -21,7 +20,6 @@
 using std::pair;
 using std::map;
 using std::set;
-using std::vector;
 class Timer;
 template<class Conn>
 class ConnectPool

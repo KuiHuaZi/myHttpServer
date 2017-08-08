@@ -174,7 +174,7 @@ void ProcessPool<T>::RunParent()
 	assert(_epollfd!=-1);
 	AddFd(_epollfd,_listenfd);
 	uint32_t ev = EPOLLIN|EPOLLET;
-	ModifyFd(_epollfd,_listenfd,ev);
+	//ModifyFd(_epollfd,_listenfd,ev);
 	int nfds = 0 ;
 	int number_child_process = _process_number;
 	int count_of_connect = 0;

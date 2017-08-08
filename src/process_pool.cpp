@@ -21,6 +21,7 @@
 #include<sys/wait.h>
 #include<sys/stat.h>
 #include"echo.h"
+#include"process_pool.h"
 int main(int argc,char* argv[])
 {
 	if(argc<=2)
@@ -43,7 +44,7 @@ int main(int argc,char* argv[])
 	assert(ret==0);
 	ret = listen(listenfd,5);
 	assert(ret==0);
-	ProcessPool<Echo>&pool = ProcessPool<Echo>::instance(listenfd,2);
+	ProcessPool<Echo>&pool = ProcessPool<Echo>::instance(listenfd,1);
 	pool.Run();
 
 	close(listenfd);
