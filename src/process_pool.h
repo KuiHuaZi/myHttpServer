@@ -174,7 +174,7 @@ void ProcessPool<T>::RunParent()
 	assert(_epollfd!=-1);
 	AddFd(_epollfd,_listenfd);
 	uint32_t ev = EPOLLIN|EPOLLET;
-	//ModifyFd(_epollfd,_listenfd,ev);
+	ModifyFd(_epollfd,_listenfd,ev);
 	int nfds = 0 ;
 	int number_child_process = _process_number;
 	int count_of_connect = 0;
@@ -376,6 +376,7 @@ void ProcessPool<T>::RunChild()
 				}
 				else if(tmp == -1)
 				{
+					log("sub_process recv -1 to exit!\n");
 					_stop = true;
 				}
 			}
@@ -401,7 +402,11 @@ void ProcessPool<T>::RunChild()
 						}
 						break;
 					case SIGTERM:
+						log("sub_process recv SIGTERM to exit!\n");
+						_stop = true;
+						break;
 					case SIGINT:
+						log("sub_process recv SIGINT to exit!\n");
 						_stop = true;
 						break;
 					default:
@@ -483,6 +488,7 @@ void ProcessPool<T>::RunChild()
 			memset(&ts,0,sizeof(ts));
 			if(!timers.IsEmpty())
 			{
+				log("set new timer!\n");
 				ts.it_value.tv_sec = timers.Min().Expire();
 				int flag = TIMER_ABSTIME;
 				int ret = timerfd_settime(time_fd,flag,&ts,NULL);

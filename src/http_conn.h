@@ -7,7 +7,7 @@ class HttpConn
 {
 public:
     static const int FILENAME_LEN = 200;
-    static const int READ_BUFFER_SIZE = 2048;
+    static const int READ_BUFFER_SIZE = 4096;
     static const int WRITE_BUFFER_SIZE = 1024;
     enum METHOD { GET = 0, POST, HEAD, PUT, DELETE, TRACE, OPTIONS, CONNECT, PATCH };
     enum CHECK_STATE { CHECK_STATE_REQUESTLINE = 0, CHECK_STATE_HEADER, CHECK_STATE_CONTENT };
@@ -85,6 +85,7 @@ private:
     bool _allocated;
     OptType _status;
     Timer *_timer;
+    int _file_fd;
 };
 
 #endif

@@ -359,8 +359,9 @@ HttpConn::HTTP_CODE HttpConn::do_request()
     }
 
     int fd = open( _real_file, O_RDONLY );
-    _file_address = ( char* )mmap( 0, _file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0 );
+   _file_address = ( char* )mmap( 0, _file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0 );
     close( fd );
+    //_file_fd = open( _real_file, O_RDONLY );
     return FILE_REQUEST;
 }
 
@@ -377,7 +378,7 @@ ReturnCode HttpConn::write()
 {
     int temp = 0;
     int bytes_have_send = 0;
-    int bytes_to_send = _write_idx;
+    int bytes_to_send = _iv[0].iov_len+_iv[1].iov_len;
     if ( bytes_to_send == 0 )
     {
         if( _linger )
@@ -391,35 +392,43 @@ ReturnCode HttpConn::write()
         }
     }
 
-    while( 1 )
+    temp = writev( _sockfd, _iv, _iv_count );
+    if ( temp <= -1 )
     {
-        temp = writev( _sockfd, _iv, _iv_count );
-        if ( temp <= -1 )
-        {
-            if( errno == EAGAIN )
-            {
-                return TOWRITE;
-            }
-            unmap();
-            init();
-            return TOCLOSE;
-        }
-
-        bytes_to_send -= temp;
-        bytes_have_send += temp;
-        if ( bytes_to_send <= bytes_have_send )
-        {
-            unmap();
-            if( _linger )
-            {
-                init();
-                return TOREAD;
-            }
-            else
-            {
-                return TOCLOSE;
-            }
-        }
+       if( errno == EAGAIN )
+       {
+           return TOWRITE;
+       }
+       unmap();
+       init();
+       return TOCLOSE;
+    }
+    if ( bytes_to_send <= temp )
+    {
+       unmap();
+       if( _linger )
+       {
+           init();
+           return TOREAD;
+       }
+       else
+       {
+          return TOCLOSE;
+       }
+   }
+    else if(temp<_iv[0].iov_len)
+    {
+    	_iv[0].iov_base=(char*)_iv[0].iov_base+temp;
+    	_iv[0].iov_len-=temp;
+    	return TOWRITE;
+    }
+    else if(temp>_iv[0].iov_len)
+    {
+    	temp -=_iv[0].iov_len;
+    	_iv[0].iov_len = 0;
+    	_iv[1].iov_base=(char*)_iv[1].iov_base+temp;
+    	_iv[1].iov_len-=temp;
+    	return TOWRITE;
     }
 }
 
