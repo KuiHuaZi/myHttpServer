@@ -1,8 +1,0 @@
-Vue.component('login', {
-  template: '<div><div id="login-back"></div><div id="signup-container"><div class="title"><h4>注册</h4></div><form><div class="user-info name-info">账号<input id="signupname" class="input-info" type="text" placeholder="请输入用户名称" maxlength="20"><div id="singup-occupy">该用户名已经被注册</div></div><div class="user-info">密码<input id="signps" class="input-info" type="password" maxlength="20" placeholder="请输入密码"></div><span class="signup-btn">注册</span><div class="infoTologin">注册成功<i class="fa fa-check" aria-hidden="true"></i> , 请点击 <a id="signtologin">登陆</a></div></form><span class="close-signup"></span></div><!-- 登录 --><div id="login-container"><div class="title"><h4>登录</h4></div><form><div class="user-info name-info">账号<input id="username" class="input-info" type="text" placeholder="请输入用户名称" maxlength="20"><div id="login-error">请输入正确的用户名</div></div><div class="user-info">密码<input id="psword" class="input-info" type="password" maxlength="20" placeholder="请输入密码"><div id="psword-error">密码错误</div></div><span class="login-btn">登录</span><div class="infoTosign">还没有注册? 请点击 <a id="loginTosign">注册</a></div></form><span class="close-login"></span></div><!-- 登录后个人信息显示 --><div id="myinfo"><a href="personalCenter.html" target="_blank" id="centerLink"><i class="fa fa-user-o fa-lg" aria-hidden="true"></i> 个人中心</a><a id="login-out"><i class="fa fa-sign-out fa-lg" aria-hidden="true"></i> 退出登录</a><span class="close-login"></span></div></div>'
-
-})
-
-new Vue({
-  el: '#login'
-})
