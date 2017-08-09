@@ -91,12 +91,6 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
         	return false;
         }
     }
-    init();
-    return true;
-}
-
-void HttpConn::init()
-{
     _check_state = CHECK_STATE_REQUESTLINE;
   //  _request_result = NO_REQUEST;
     _linger = false;
@@ -112,6 +106,36 @@ void HttpConn::init()
     _write_idx = 0;
     _status = READ;
     memset( _read_buf, '\0', READ_BUFFER_SIZE );
+    memset( _write_buf, '\0', WRITE_BUFFER_SIZE );
+    memset( _real_file, '\0', FILENAME_LEN );
+    return true;
+}
+
+void HttpConn::init()
+{
+    _check_state = CHECK_STATE_REQUESTLINE;
+  //  _request_result = NO_REQUEST;
+    _linger = false;
+
+    _method = GET;
+    _url = 0;
+    _version = 0;
+    _content_length = 0;
+    _host = 0;
+    _start_line = 0;
+    _write_idx = 0;
+    _status = READ;
+    if(_checked_idx<_read_idx)
+    {
+    	memcpy(_read_buf,_read_buf+_checked_idx,_read_idx-_checked_idx);
+    	_read_idx = _read_idx - _checked_idx;
+    	_checked_idx = 0;
+    }
+    else
+    {
+    	_read_idx = _checked_idx = 0;
+    }
+    memset( _read_buf+_read_idx, '\0', READ_BUFFER_SIZE );
     memset( _write_buf, '\0', WRITE_BUFFER_SIZE );
     memset( _real_file, '\0', FILENAME_LEN );
 }
@@ -580,16 +604,15 @@ ReturnCode HttpConn::Process(OptType option)
 	    {
 	        return CONTINUE;
 	    }
-	    else
+	    else if(process_write(read_ret))
 	    {
-		    bool write_ret = process_write( read_ret );
-		    if ( ! write_ret )
-		    {
-		        return TOCLOSE;
-		    }
-		    _status = WRITE;
-		    ReturnCode code = write();
-		    return code;
+
+	    	_status = WRITE;
+	    	return TOWRITE;
+	    }
+	    else{
+
+	    	return TOCLOSE;
 	    }
 
 	}
@@ -609,15 +632,22 @@ ReturnCode HttpConn::Process(OptType option)
 #include<sys/epoll.h>
 #include<sys/timerfd.h>
 //#include"time_heap.h"
-int main()
+int main(int argc,char* argv[])
 {
+	if(argc<=2)
+		{
+			log("usage: %s ip_address port_number\n",basename(argv[0]));
+			return 1;
+		}
+		const char*ip = argv[1];
+		int port = atoi(argv[2]);
 	int listen_fd = socket(AF_INET,SOCK_STREAM,0);
 	assert(listen_fd>0);
 	struct sockaddr_in address;
 	memset(&address,0,sizeof(address));
 	address.sin_family = AF_INET;
-	inet_aton("127.0.0.1",&address.sin_addr);
-	address.sin_port = htons(8080);
+	inet_pton(AF_INET,ip,&address.sin_addr);
+	address.sin_port = htons(port);
 	const int connect_keep_time = 6000;
 	int ret = bind(listen_fd,(struct sockaddr*)&address,sizeof(address));
 	assert(ret==0);

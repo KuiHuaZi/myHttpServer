@@ -57,7 +57,6 @@ public:
 private:
     int _sockfd;
     //sockaddr_in _address;
-
     char *_read_buf;
     int _read_buf_size;
     int _read_idx;
