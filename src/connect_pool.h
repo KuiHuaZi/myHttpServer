@@ -129,6 +129,7 @@ template<class Conn>
 Timer& ConnectPool<Conn>::TimerOfConnect(int connfd)
 {
 	Conn* tmp = _connect_using.at(connfd);
+	log("ConnectPool::TimerOfConnect:Conn tmp:%d\n",tmp);
 	return tmp->GetTimer();
 }
 #endif /* SRC_CONNECT_POOL_H_ */

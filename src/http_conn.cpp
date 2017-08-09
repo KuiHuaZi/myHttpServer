@@ -127,6 +127,7 @@ void HttpConn::init()
     _status = READ;
     if(_checked_idx<_read_idx)
     {
+    	log("\npipling!\n");
     	memcpy(_read_buf,_read_buf+_checked_idx,_read_idx-_checked_idx);
     	_read_idx = _read_idx - _checked_idx;
     	_checked_idx = 0;

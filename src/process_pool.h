@@ -68,7 +68,7 @@ private:
 	static const int MAX_PROCESS_NUMBER = 16;
 	static const int USER_PER_PROCESS = 65536;
 	static const int MAX_EVENT_NUMBER = 10000;
-	static const int CONNECT_KEEP_TIME = 100;
+	static const int CONNECT_KEEP_TIME = 30;
 	int _connections_number_per_process;
 
 };
@@ -421,12 +421,17 @@ void ProcessPool<T>::RunChild()
 			}
 			else if(evlist[i].events & EPOLLIN)
 			{
+
 				ReturnCode code = connect_pool.Process(sockfd,READ);
 				uint32_t ev = EPOLLOUT;
 				log("update timer!\n");
 				Timer &timer = connect_pool.TimerOfConnect(sockfd);
+				log("after connect_pool.TimerOfConnect!\n");
 				timer.AdjustTimer(CONNECT_KEEP_TIME);
+				log("after AdjustTimer!\n");
 				timers.UpdateTimer(timer);
+				log("after UpdateTimer!\n");
+				log(" sockfd:%d\n code:%d\n",sockfd,code);
 				switch(code)
 				{
 				case TOWRITE:
@@ -467,6 +472,7 @@ void ProcessPool<T>::RunChild()
 				case CONTINUE:
 				default:
 					log("CONTINUE!\n");
+					break;
 				}
 			}
 			else
@@ -492,7 +498,8 @@ void ProcessPool<T>::RunChild()
 				ts.it_value.tv_sec = timers.Min().Expire();
 				int flag = TIMER_ABSTIME;
 				int ret = timerfd_settime(time_fd,flag,&ts,NULL);
-				assert(ret == 0);
+				log("timerfd_settime:ret%d\n",ret);
+				//assert(ret == 0);
 			}
 		}
 		if(old_connect_number!=_connect_number)

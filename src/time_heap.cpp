@@ -77,7 +77,13 @@ const Timer& TimerHeap::Min()
 
 void TimerHeap::DelTimer(Timer &t)
 {
+	if(IsEmpty())
+	{
+		return;
+	}
 	int index = t._location_in_heap;
+	if(_heap[index]!=&t)
+		return;
 	_heap[index] = _heap[_size--];
 	_heap[index]->_location_in_heap = index;
 	sink(index);
