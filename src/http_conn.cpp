@@ -105,6 +105,7 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
     _read_idx = 0;
     _write_idx = 0;
     _status = READ;
+    memset(_iv,0,sizeof(_iv));
     memset( _read_buf, '\0', READ_BUFFER_SIZE );
     memset( _write_buf, '\0', WRITE_BUFFER_SIZE );
     memset( _real_file, '\0', FILENAME_LEN );
@@ -113,29 +114,28 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
 
 void HttpConn::init()
 {
-    _check_state = CHECK_STATE_REQUESTLINE;
-  //  _request_result = NO_REQUEST;
-    _linger = false;
+	if (_checked_idx < _read_idx) {
+		log("\npipling!\n");
+		memcpy(_read_buf, _read_buf + _checked_idx, _read_idx - _checked_idx);
+		_read_idx = _read_idx - _checked_idx;
 
-    _method = GET;
-    _url = 0;
-    _version = 0;
-    _content_length = 0;
-    _host = 0;
-    _start_line = 0;
-    _write_idx = 0;
-    _status = READ;
-    if(_checked_idx<_read_idx)
-    {
-    	log("\npipling!\n");
-    	memcpy(_read_buf,_read_buf+_checked_idx,_read_idx-_checked_idx);
-    	_read_idx = _read_idx - _checked_idx;
-    	_checked_idx = 0;
-    }
-    else
-    {
-    	_read_idx = _checked_idx = 0;
-    }
+	} else {
+		_read_idx = 0;
+
+	}
+
+	_check_state = CHECK_STATE_REQUESTLINE;
+	_linger = false;
+	_checked_idx = 0;
+	_method = GET;
+	_url = 0;
+	_version = 0;
+	_content_length = 0;
+	_host = 0;
+	_start_line = 0;
+	_write_idx = 0;
+	_status = READ;
+
     memset( _read_buf+_read_idx, '\0', READ_BUFFER_SIZE );
     memset( _write_buf, '\0', WRITE_BUFFER_SIZE );
     memset( _real_file, '\0', FILENAME_LEN );
@@ -416,7 +416,7 @@ ReturnCode HttpConn::write()
             return TOCLOSE;
         }
     }
-
+    log("write url:%s\n",_url);
     temp = writev( _sockfd, _iv, _iv_count );
     if ( temp <= -1 )
     {
@@ -430,6 +430,7 @@ ReturnCode HttpConn::write()
     }
     if ( bytes_to_send <= temp )
     {
+       log("write url:%s success!\n",_url);
        unmap();
        if( _linger )
        {
