@@ -50,7 +50,7 @@ HttpConn::~HttpConn()
 	{
 		delete[]_read_buf;
 		delete[]_write_buf;
-		delete[]_timer;
+		delete _timer;
 	}
 }
 bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_size/*, const sockaddr_in& addr */)
