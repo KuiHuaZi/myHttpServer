@@ -102,7 +102,8 @@ int SetNonblocking(int fd)
 }
 void log(const char *cmd,...)
 {
-	printf("%s %s",__DATE__,__TIME__);
+return;	
+printf("%s %s",__DATE__,__TIME__);
     va_list vp;
     va_start(vp, cmd);
     int result = vprintf(cmd, vp);
