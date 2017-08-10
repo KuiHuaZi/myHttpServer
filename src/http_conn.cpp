@@ -90,7 +90,9 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
         	delete[]_write_buf;
         	return false;
         }
+        _allocated = true;
     }
+
     _check_state = CHECK_STATE_REQUESTLINE;
   //  _request_result = NO_REQUEST;
     _linger = false;

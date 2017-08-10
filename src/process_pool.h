@@ -257,18 +257,6 @@ void ProcessPool<T>::RunParent()
 			 }
 			 else if(sockfd == _listenfd)
 			 {
-				/* if(count_of_connect > _process_number)
-				 {
-					 count_of_connect %= _process_number;
-				 }
-				 if(_sub_process[count_of_connect] == -1)
-				 {
-					 _stop = true;
-					 break;
-				 }
-				 send(_sub_process[count_of_connect]._pipefd[0],(char*)&new_connect,sizeof(new_connect),0);
-				 log("send request to child %d\n",count_of_connect);
-				 ++count_of_connect;*/
 	                int index = GetLeastConnectNumberProcess();
 	                send( _sub_process[index]._pipefd[0], ( char* )&new_connect, sizeof( new_connect ), 0 );
 					log("send request to child %d\n",_sub_process[index]._pid);
@@ -309,10 +297,6 @@ void ProcessPool<T>::RunChild()
 	AddFd(_epollfd,time_fd);
 	uint32_t ev = EPOLLIN|EPOLLET;
 	ModifyFd(_epollfd,time_fd,ev);
-/*	while(!AddFd(_epollfd,time_fd))
-	{
-		log("Process %d RunChild:add time_fd failed!\n",_sub_process[_index]._pid);
-	}*/
 	ConnectPool<T> connect_pool(_connections_number_per_process);
 	int ret = -1;
 	while(!_stop)

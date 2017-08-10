@@ -95,6 +95,12 @@ void TimerHeap::PopTimer()
 	{
 		return;
 	}
+	else if(_size==1)
+	{
+		_heap[1] = nullptr;
+		_size = 0;
+		return;
+	}
 	_heap[1] = _heap[_size--];
 	_heap[1]->_location_in_heap = 1;
 	sink(1);
@@ -228,12 +234,12 @@ void TimerHeap::swap(int i,int j)
 }
 void TimerHeap::resize(int cap)
 {
-	Timer** temp = new Timer*[cap];
+	Timer** temp = new Timer*[cap+1];
 	if(!temp)
 	{
 		throw std::exception();
 	}
-	for(int i = 0;i < cap;++i)
+	for(int i = 0;i < cap+1;++i)
 	{
 		temp[i] = NULL;
 	}

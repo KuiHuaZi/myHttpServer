@@ -23,7 +23,7 @@ int main()
 	address.sin_family = AF_INET;
 	inet_aton("127.0.0.1",&address.sin_addr);
 	address.sin_port = htons(8080);
-	const int connect_keep_time = 6000;
+	const int connect_keep_time = 60;
 	int ret = bind(listen_fd,(struct sockaddr*)&address,sizeof(address));
 	assert(ret==0);
 	ret = listen(listen_fd,5);
