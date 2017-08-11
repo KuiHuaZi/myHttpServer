@@ -43,7 +43,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 	//_connect_keep_time = connect_keep_time;
 	if(!_buffer_allocated)
 	{
-		_recv_buffer = new char[recv_size+1];
+		_recv_buffer = new(std::nothrow) char[recv_size+1];
 		if(!_recv_buffer)
 		{
 			log("Echo::Init() new failed!\n");
@@ -60,7 +60,7 @@ bool Echo::Init(int connfd,int connect_keep_time,int recv_size,int send_size)
 		}
 		*/
 		_send_buffer_size = send_size;
-		_timer = new Timer(connect_keep_time,_connfd);
+		_timer = new(std::nothrow) Timer(connect_keep_time,_connfd);
 		if(!_timer)
 		{
 			delete[]_recv_buffer;

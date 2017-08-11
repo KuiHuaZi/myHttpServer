@@ -45,7 +45,7 @@ TimerHeap::TimerHeap(int cap)
 {
 	_cap = cap ;
 	_size = 0 ;
-	_heap = new Timer*[_cap+1];
+	_heap = new(std::nothrow) Timer*[_cap+1];
 	if(!_heap)
 	{
 		throw std::exception();
@@ -234,7 +234,7 @@ void TimerHeap::swap(int i,int j)
 }
 void TimerHeap::resize(int cap)
 {
-	Timer** temp = new Timer*[cap+1];
+	Timer** temp = new(std::nothrow) Timer*[cap+1];
 	if(!temp)
 	{
 		throw std::exception();
@@ -306,7 +306,7 @@ static void Test()
 						case '+':
 							int time;
 							std::cin>>time;
-							t = new Timer(time);
+							t = new(std::nothrow) Timer(time);
 							t->cb_funct = cb_func;
 							heap.InsertTimer(*t);
 							if(heap.size()==1)

@@ -49,6 +49,16 @@ private:
     bool add_content_length( int content_length );
     bool add_linger();
     bool add_blank_line();
+    void my_memcpy(char*dest,char*src,size_t n)
+    {
+    	while(n>0)
+    	{
+    		*dest=*src;
+    		dest++;
+    		src++;
+    		n--;
+    	}
+    }
 
 public:
     //static int m_epollfd;
@@ -58,6 +68,7 @@ private:
     int _sockfd;
     //sockaddr_in _address;
     char *_read_buf;
+    //char *_back_read_buf;
     int _read_buf_size;
     int _read_idx;
     int _checked_idx;

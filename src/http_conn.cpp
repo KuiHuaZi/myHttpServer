@@ -67,14 +67,20 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
 
     if(!_allocated)
     {
-    	_read_buf = new char[READ_BUFFER_SIZE];
+    	_read_buf = new(std::nothrow) char[READ_BUFFER_SIZE];
     	if(!_read_buf)
     	{
     		log("HttpConn::init new failed!\n");
     		return false;
     	}
     	_read_buf_size = READ_BUFFER_SIZE;
-    	_write_buf = new char[WRITE_BUFFER_SIZE];
+    	/*_back_read_buf = new(std::nothrow)  char[READ_BUFFER_SIZE];
+    	if(!_back_read_buf)
+    	{
+    		log("HttpConn::init new failed!\n");
+    		return false;
+    	}*/
+    	_write_buf = new(std::nothrow) char[WRITE_BUFFER_SIZE];
     	if(!_write_buf)
     	{
     		log("HttpConn::init new failed!\n");
@@ -82,7 +88,7 @@ bool HttpConn::Init( int sockfd,int connect_keep_time,int recv_size,int send_siz
     		return false;
     	}
         _write_buf_size = send_size;
-        _timer = new Timer(connect_keep_time);
+        _timer = new(std::nothrow) Timer(connect_keep_time);
         if(!_timer)
         {
         	log("HttpConn::init _timer new failed!\n");
@@ -118,7 +124,7 @@ void HttpConn::init()
 {
 	if (_checked_idx < _read_idx) {
 		log("\npipling!\n");
-		memcpy(_read_buf, _read_buf + _checked_idx, _read_idx - _checked_idx);
+		my_memcpy(_read_buf, _read_buf + _checked_idx, _read_idx - _checked_idx);
 		_read_idx = _read_idx - _checked_idx;
 
 	} else {

@@ -60,7 +60,11 @@ template<class Conn>
 ConnectPool<Conn>::ConnectPool(int size)
 {
 	_cap = size;
-	_connect_pool = new Conn[size];
+	_connect_pool = new(std::nothrow) Conn[size];
+	if(!_connect_pool)
+	{
+		_exit(1);
+	}
 	for(int i = 0;i<size;i++)
 	{
 		_connect_free.insert(&_connect_pool[i]);

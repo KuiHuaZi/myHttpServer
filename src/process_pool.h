@@ -101,8 +101,7 @@ ProcessPool<T>::ProcessPool(int listenfd,int process_number,int connections_numb
 
 	assert(listenfd>=0);
 	assert((process_number<MAX_PROCESS_NUMBER)&&(process_number>0));
-	_sub_process = new Process[_process_number];
-
+	_sub_process = new(std::nothrow) Process[_process_number];
 	assert(_sub_process);
 	for(int i = 0 ;i < _process_number;i++)
 	{
