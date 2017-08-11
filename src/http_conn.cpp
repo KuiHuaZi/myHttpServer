@@ -138,7 +138,7 @@ void HttpConn::init()
 	_write_idx = 0;
 	_status = READ;
 
-    memset( _read_buf+_read_idx, '\0', READ_BUFFER_SIZE );
+    memset( _read_buf+_read_idx, '\0', READ_BUFFER_SIZE-_read_idx );
     memset( _write_buf, '\0', WRITE_BUFFER_SIZE );
     memset( _real_file, '\0', FILENAME_LEN );
 }
